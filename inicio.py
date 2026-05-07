@@ -1,62 +1,83 @@
-import sys
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QLabel, QLineEdit,
-    QPushButton, QMessageBox
+import customtkinter as ctk
+from PIL import Image
+
+# Configuración
+ctk.set_appearance_mode("dark")
+
+# Ventana
+app = ctk.CTk()
+app.geometry("1920x1080")
+
+# Fondo
+app.configure(fg_color="#810000")
+
+# Frame
+frame = ctk.CTkFrame(app, width=300, height=300, corner_radius=20)
+frame.place(relx=0.5, rely=0.5, anchor="center")
+
+# IMPORTANTE
+frame.pack_propagate(False)
+
+# ================= LOGO =================
+# LOGO
+logo_img = ctk.CTkImage(
+    light_image=Image.open("logo.png"),
+    dark_image=Image.open("logo.png"),
+    size=(200,150)
 )
 
-# Función que se ejecuta al presionar el botón
-def verificar_login():
-    usuario = input_usuario.text()
-    clave = input_clave.text()
+logo = ctk.CTkLabel(
+    app,
+    image=logo_img,
+    text=""
+)
 
-    # Usuario y contraseña de prueba
-    if usuario == "admin" and clave == "1234":
-        QMessageBox.information(None, "Login correcto", "Bienvenido 😄")
-    else:
-        QMessageBox.warning(None, "Error", "Usuario o contraseña incorrectos")
+logo.place(relx=0.5, rely=0.10, anchor="center")
 
+# ================= TITULO =================
 
-# Crear aplicación
-app = QApplication(sys.argv)
+titulo = ctk.CTkLabel(
+    frame,
+    text="Inicio de Sesion",
+    font=("Arial", 30, "bold")
+)
 
-# Crear ventana
-ventana = QWidget()
-ventana.setWindowTitle("Login básico")
-ventana.setGeometry(500, 200, 350, 200)
+titulo.pack(pady=10)
 
-# Texto usuario
-label_usuario = QLabel("Usuario:", ventana)
-label_usuario.move(50, 40)
+# ================= INPUTS =================
 
-# Input usuario
-input_usuario = QLineEdit(ventana)
-input_usuario.move(120, 35)
-input_usuario.resize(180, 30)
+usuario = ctk.CTkEntry(
+    frame,
+    placeholder_text="Usuario",
+    width=240,
+    height=50,
+     font=("poppins", 15, "bold")
+)
 
-# Texto contraseña
-label_clave = QLabel("Contraseña:", ventana)
-label_clave.move(50, 90)
+usuario.pack(pady=(20,10))
 
-# Input contraseña
-input_clave = QLineEdit(ventana)
-input_clave.move(120, 85)
-input_clave.resize(180, 30)
-input_clave.setEchoMode(QLineEdit.Password)  # Oculta la contraseña
+contraseña = ctk.CTkEntry(
+    frame,
+    placeholder_text="Contraseña",
+    show="*",
+    width=240,
+    height=50,
+     font=("poppins", 15, "bold")
 
-# Botón login
-boton_login = QPushButton("Ingresar", ventana)
-boton_login.move(120, 135)
-boton_login.resize(100, 30)
+)
 
-# Conectar botón con función
-boton_login.clicked.connect(verificar_login)
+contraseña.pack(pady=(20,10))
 
-# Mostrar ventana
-ventana.show()
+# ================= BOTON =================
 
-# Ejecutar app
-sys.exit(app.exec_())
+boton = ctk.CTkButton(
+    frame,
+    text="Iniciar Sesión",
+     font=("poppins", 15, "bold")
 
-ventana.show()   # mostrar ventana
+)
 
-sys.exit(app.exec_())   # ejecutar programa
+boton.pack(pady=20)
+
+# Ejecutar
+app.mainloop()
