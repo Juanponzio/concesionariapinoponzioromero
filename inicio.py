@@ -13,6 +13,7 @@ app.configure(fg_color="#810000")
 
 # Frame
 frame = ctk.CTkFrame(app, width=300, height=300, corner_radius=20)
+#asfd
 frame.place(relx=0.5, rely=0.5, anchor="center")
 
 # IMPORTANTE
