@@ -8,7 +8,9 @@ ctk.set_appearance_mode("dark")
 # Ventana
 app = ctk.CTk()
 
-app.geometry(f"{app.winfo_screenwidth()}x{app.winfo_screenheight()}+0+0")
+# En lugar de usar app.geometry con winfo_screenwidth...
+# Usa esto para que se abra maximizada de una:
+app.after(0, lambda: app.state("zoomed"))
 # Fondo
 app.configure(fg_color="#920202")
 
@@ -54,7 +56,7 @@ def verificar_login():
 
     if usuario_texto == "jefe" and contraseña_texto == "123":
 
-        app.withdraw()
+        app.withdraw() # Esto solo esconde la ventana, NO la cierra
 
         panel.abrir_panel()
 
