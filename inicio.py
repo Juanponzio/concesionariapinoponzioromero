@@ -110,7 +110,7 @@ boton = ctk.CTkButton(
     command=verificar_login
 )
 
-boton.pack(pady=(30))
+boton.pack(pady=30)
 
 
 
