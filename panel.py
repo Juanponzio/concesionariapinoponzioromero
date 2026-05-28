@@ -68,6 +68,15 @@ def abrir_panel():
     pag_configuracion = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_configuracion, text="Configuración", font=("Akt", 30, "bold")).pack(pady=20)
 
+   
+   
+   
+   
+   
+
+   
+   
+   
     # ================= NUEVO VEHÍCULO =================
     def agregar_auto():
         marca = entry_marca.get()
@@ -168,6 +177,15 @@ def abrir_panel():
         tabla.column(col, width=100, anchor="center")
     tabla.pack(fill="both", expand=True, padx=20, pady=10)
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
     # ================= EMPLEADOS =================
     empleados_data = [
     ("Carlos Zalcas", "Gerente General", "Administración", "carlos@zalcas.com", "2020-01-15", "$120.000", "Editar | Eliminar"),
