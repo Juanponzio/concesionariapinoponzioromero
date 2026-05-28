@@ -82,7 +82,7 @@ usuario = ctk.CTkEntry(
 )
 
 usuario.pack(pady=(30,20))
-
+#sasaqs
 contraseña = ctk.CTkEntry(
     frame,
     placeholder_text="Ingresa Tu Contraseña",
