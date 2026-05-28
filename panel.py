@@ -170,10 +170,10 @@ def abrir_panel():
 
     # ================= EMPLEADOS =================
     empleados_data = [
-        ("Carlos Zalcas", "Gerente General", "Administración", "carlos@zalcas.com", "2020-01-15", "$120.000"),
-        ("Ana Martínez", "Vendedor Senior", "Ventas", "ana@zalcas.com", "2021-03-10", "$65.000"),
-        ("Roberto Silva", "Mecánico", "Servicio Técnico", "roberto@zalcas.com", "2021-06-20", "$55.000"),
-    ]
+    ("Carlos Zalcas", "Gerente General", "Administración", "carlos@zalcas.com", "2020-01-15", "$120.000", "Editar | Eliminar"),
+    ("Ana Martínez", "Vendedor Senior", "Ventas", "ana@zalcas.com", "2021-03-10", "$65.000", "Editar | Eliminar"),
+    ("Roberto Silva", "Mecánico", "Servicio Técnico", "roberto@zalcas.com", "2021-06-20", "$55.000", "Editar | Eliminar"),
+]
 
     def cargar_empleados():
         for item in tabla_empleados.get_children():
@@ -197,6 +197,76 @@ def abrir_panel():
         tabla_empleados.delete(seleccionado)
         messagebox.showinfo("Éxito", "Empleado eliminado")
 
+    def editar_empleado():
+        seleccionado = tabla_empleados.selection()
+        if not seleccionado:
+            messagebox.showwarning("Atención", "Selecciona un empleado")
+            return
+
+        valores = tabla_empleados.item(seleccionado, "values")
+
+        ventana_editar = ctk.CTkToplevel()
+        ventana_editar.title("Editar Empleado")
+        ventana_editar.geometry("500x500")
+        ventana_editar.configure(fg_color="#1E1E1E")
+
+        ctk.CTkLabel(
+            ventana_editar,
+            text="Editar Empleado",
+            font=("Akt", 28, "bold")
+        ).pack(pady=20)
+
+        entry_nombre = ctk.CTkEntry(ventana_editar, width=350)
+        entry_nombre.pack(pady=10)
+        entry_nombre.insert(0, valores[0])
+
+        entry_puesto = ctk.CTkEntry(ventana_editar, width=350)
+        entry_puesto.pack(pady=10)
+        entry_puesto.insert(0, valores[1])
+
+        entry_departamento = ctk.CTkEntry(ventana_editar, width=350)
+        entry_departamento.pack(pady=10)
+        entry_departamento.insert(0, valores[2])
+
+        entry_contacto = ctk.CTkEntry(ventana_editar, width=350)
+        entry_contacto.pack(pady=10)
+        entry_contacto.insert(0, valores[3])
+
+        entry_fecha = ctk.CTkEntry(ventana_editar, width=350)
+        entry_fecha.pack(pady=10)
+        entry_fecha.insert(0, valores[4])
+
+        entry_salario = ctk.CTkEntry(ventana_editar, width=350)
+        entry_salario.pack(pady=10)
+        entry_salario.insert(0, valores[5])
+
+        def guardar_cambios():
+            tabla_empleados.item(
+                seleccionado,
+                values=(
+                    entry_nombre.get(),
+                    entry_puesto.get(),
+                    entry_departamento.get(),
+                    entry_contacto.get(),
+                    entry_fecha.get(),
+                    entry_salario.get(),
+                    "Editar | Eliminar"
+                )
+            )
+
+            messagebox.showinfo("Éxito", "Empleado actualizado")
+            ventana_editar.destroy()
+
+        btn_guardar = ctk.CTkButton(
+            ventana_editar,
+            text="Guardar Cambios",
+            fg_color="#920202",
+            hover_color="#B00000",
+            command=guardar_cambios
+        )
+
+        btn_guardar.pack(pady=20)
+
     pag_empleados = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
 
     titulo_emp = ctk.CTkLabel(pag_empleados, text="Empleados", font=("Akt", 34, "bold"), text_color="white")
@@ -214,14 +284,14 @@ def abrir_panel():
         card = ctk.CTkFrame(parent, fg_color="#161616", border_width=1, border_color="#5A0000", corner_radius=15, height=130)
         label_titulo = ctk.CTkLabel(card, text=titulo, font=("Akt", 18), text_color="#BFBFBF")
         label_titulo.pack(anchor="w", padx=20, pady=(20, 5))
-        label_valor = ctk.CTkLabel(card, text=valor, font=("Akt", 36, "bold"), text_color="white")
-        label_valor.pack(anchor="w", padx=20)
+        label_valor = ctk.CTkLabel(card, text=valor, font=("Akt", 30, "bold"), text_color="white")
+        label_valor.pack(anchor="w", pady=10, padx=20)
         if extra:
             extra_label = ctk.CTkLabel(card, text=extra, font=("Akt", 14), text_color="#00CC66")
             extra_label.pack(anchor="w", padx=20)
         return card
 
-    card1 = crear_card(cards_frame, "Total Empleados", "6", "+2 este mes")
+    card1 = crear_card(cards_frame, "Total Empleados", "6")
     card1.grid(row=0, column=0, padx=10, sticky="ew")
 
     card2 = crear_card(cards_frame, "Departamentos", "5")
@@ -253,7 +323,15 @@ def abrir_panel():
     style.configure("empleados.Treeview.Heading", background="#1F1F1F", foreground="white", relief="flat", font=("Akt", 13, "bold"))
     style.map("empleados.Treeview", background=[("selected", "#920202")])
 
-    columnas_empleados = ("Nombre", "Puesto", "Departamento", "Contacto", "Fecha Ingreso", "Salario")
+    columnas_empleados = (
+        "Nombre",
+        "Puesto",
+        "Departamento",
+        "Contacto",
+        "Fecha Ingreso",
+        "Salario",
+        "Acciones"
+    )
     tabla_empleados = ttk.Treeview(tabla_container, columns=columnas_empleados, show="headings", style="empleados.Treeview", height=15)
 
     for col in columnas_empleados:
@@ -261,9 +339,36 @@ def abrir_panel():
         tabla_empleados.column(col, anchor="center", width=180)
 
     tabla_empleados.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+    frame_botones_emp = ctk.CTkFrame(tabla_container, fg_color="transparent")
+    frame_botones_emp.pack(pady=15)
+
+    btn_editar_emp = ctk.CTkButton(
+        frame_botones_emp,
+        text="Editar Empleado",
+        width=180,
+        height=45,
+        fg_color="#8B0000",
+        hover_color="#B00000",
+        font=("Akt", 15, "bold"),
+        command=editar_empleado
+    )
+    btn_editar_emp.grid(row=0, column=0, padx=10)
+
+    btn_eliminar_emp = ctk.CTkButton(
+        frame_botones_emp,
+        text="Eliminar Empleado",
+        width=180,
+        height=45,
+        fg_color="#400000",
+        hover_color="#920202",
+        font=("Akt", 15, "bold"),
+        command=eliminar_empleado
+    )
+    btn_eliminar_emp.grid(row=0, column=1, padx=10)
+
     cargar_empleados()
 
-    # ================= DICCIONARIO DE PÁGINAS =================
     diccionario_paginas = {
         "Estadisticas": pag_estadisticas,
         "Ingresos": pag_ingresos,
@@ -281,10 +386,10 @@ def abrir_panel():
 
     def mostrar_contenido(nombre, boton):
         nonlocal boton_activo
-        
+
         if boton_activo:
             boton_activo.configure(fg_color="transparent")
-        
+
         boton.configure(fg_color="#920202")
         boton_activo = boton
 
@@ -298,7 +403,6 @@ def abrir_panel():
         else:
             print(f"Error: La sección '{nombre}' no está definida")
 
-    # ================= BOTONES DEL MENÚ =================
     btn_estadisticas = ctk.CTkButton(sidebar_frame, text="Estadisticas", height=50, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("Estadisticas", btn_estadisticas))
     btn_estadisticas.grid(row=2, column=0, padx=20, pady=3, sticky="ew")
 
