@@ -196,23 +196,25 @@ def abrir_panel():
     def cargar_empleados():
         for item in tabla_empleados.get_children():
             tabla_empleados.delete(item)
-        for empleado in empleados_data:
-            tabla_empleados.insert("", "end", values=empleado)
+        for index, empleado in enumerate(empleados_data):
+            tabla_empleados.insert("", "end", iid=str(index), values=empleado)
 
     def buscar_empleado(event=None):
         filtro = buscador_empleados.get().lower()
         for item in tabla_empleados.get_children():
             tabla_empleados.delete(item)
-        for empleado in empleados_data:
+        for index, empleado in enumerate(empleados_data):
             if filtro in empleado[0].lower() or filtro in empleado[1].lower():
-                tabla_empleados.insert("", "end", values=empleado)
+                tabla_empleados.insert("", "end", iid=str(index), values=empleado)
 
     def eliminar_empleado():
         seleccionado = tabla_empleados.selection()
         if not seleccionado:
             messagebox.showwarning("Atención", "Selecciona un empleado")
             return
-        tabla_empleados.delete(seleccionado)
+        index = int(seleccionado[0])
+        del empleados_data[index]
+        cargar_empleados()
         messagebox.showinfo("Éxito", "Empleado eliminado")
 
     def editar_empleado():
@@ -220,70 +222,96 @@ def abrir_panel():
         if not seleccionado:
             messagebox.showwarning("Atención", "Selecciona un empleado")
             return
-
-        valores = tabla_empleados.item(seleccionado, "values")
+        index = int(seleccionado[0])
+        valores = empleados_data[index]
 
         ventana_editar = ctk.CTkToplevel()
         ventana_editar.title("Editar Empleado")
-        ventana_editar.geometry("500x500")
+        ventana_editar.geometry("520x620")
         ventana_editar.configure(fg_color="#1E1E1E")
+        ventana_editar.resizable(False, False)
+
+        frame_editar = ctk.CTkFrame(ventana_editar, fg_color="#111111", corner_radius=20, border_width=2, border_color="#920202")
+        frame_editar.pack(padx=20, pady=20, fill="both", expand=True)
 
         ctk.CTkLabel(
-            ventana_editar,
+            frame_editar,
             text="Editar Empleado",
-            font=("Akt", 28, "bold")
-        ).pack(pady=20)
+            font=("Akt", 28, "bold"),
+            text_color="white"
+        ).pack(pady=(20, 15))
 
-        entry_nombre = ctk.CTkEntry(ventana_editar, width=350)
-        entry_nombre.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Nombre", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_nombre = ctk.CTkEntry(frame_editar, width=440)
+        entry_nombre.pack(pady=5)
         entry_nombre.insert(0, valores[0])
 
-        entry_puesto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_puesto.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Puesto", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_puesto = ctk.CTkEntry(frame_editar, width=440)
+        entry_puesto.pack(pady=5)
         entry_puesto.insert(0, valores[1])
 
-        entry_departamento = ctk.CTkEntry(ventana_editar, width=350)
-        entry_departamento.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Departamento", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_departamento = ctk.CTkEntry(frame_editar, width=440)
+        entry_departamento.pack(pady=5)
         entry_departamento.insert(0, valores[2])
 
-        entry_contacto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_contacto.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Contacto", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_contacto = ctk.CTkEntry(frame_editar, width=440)
+        entry_contacto.pack(pady=5)
         entry_contacto.insert(0, valores[3])
 
-        entry_fecha = ctk.CTkEntry(ventana_editar, width=350)
-        entry_fecha.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Fecha de Ingreso", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_fecha = ctk.CTkEntry(frame_editar, width=440)
+        entry_fecha.pack(pady=5)
         entry_fecha.insert(0, valores[4])
 
-        entry_salario = ctk.CTkEntry(ventana_editar, width=350)
-        entry_salario.pack(pady=10)
+        ctk.CTkLabel(frame_editar, text="Salario", anchor="w", font=("Akt", 14, "bold"), text_color="#BFBFBF").pack(fill="x", padx=20, pady=(10, 5))
+        entry_salario = ctk.CTkEntry(frame_editar, width=440)
+        entry_salario.pack(pady=5)
         entry_salario.insert(0, valores[5])
 
         def guardar_cambios():
-            tabla_empleados.item(
-                seleccionado,
-                values=(
-                    entry_nombre.get(),
-                    entry_puesto.get(),
-                    entry_departamento.get(),
-                    entry_contacto.get(),
-                    entry_fecha.get(),
-                    entry_salario.get(),
-                    "Editar | Eliminar"
-                )
+            empleados_data[index] = (
+                entry_nombre.get(),
+                entry_puesto.get(),
+                entry_departamento.get(),
+                entry_contacto.get(),
+                entry_fecha.get(),
+                entry_salario.get(),
+                "Editar | Eliminar"
             )
-
+            cargar_empleados()
             messagebox.showinfo("Éxito", "Empleado actualizado")
             ventana_editar.destroy()
 
+        def cancelar_edicion():
+            ventana_editar.destroy()
+
+        botones_frame = ctk.CTkFrame(frame_editar, fg_color="transparent")
+        botones_frame.pack(pady=20)
+
         btn_guardar = ctk.CTkButton(
-            ventana_editar,
-            text="Guardar Cambios",
+            botones_frame,
+            text="Guardar cambios",
             fg_color="#920202",
             hover_color="#B00000",
+            width=200,
             command=guardar_cambios
         )
+        btn_guardar.grid(row=0, column=0, padx=10)
 
-        btn_guardar.pack(pady=20)
+        btn_cancelar = ctk.CTkButton(
+            botones_frame,
+            text="Cancelar",
+            fg_color="#2D2D2D",
+            hover_color="#444444",
+            width=200,
+            command=cancelar_edicion
+        )
+        btn_cancelar.grid(row=0, column=1, padx=10)
+
+        ventana_editar.grab_set()
 
     pag_empleados = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
 
@@ -357,6 +385,7 @@ def abrir_panel():
         tabla_empleados.column(col, anchor="center", width=180)
 
     tabla_empleados.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+    tabla_empleados.bind("<Double-1>", lambda event: editar_empleado())
 
     frame_botones_emp = ctk.CTkFrame(tabla_container, fg_color="transparent")
     frame_botones_emp.pack(pady=15)
