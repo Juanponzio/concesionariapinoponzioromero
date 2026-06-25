@@ -1,12 +1,22 @@
 import customtkinter as ctk
 from PIL import Image
 import panel
-
+import panelempleado
+from tkinter import messagebox  # Importamos el módulo para mostrar alertas o mensajes
 # Configuración
 ctk.set_appearance_mode("dark")
 
 # Ventana
 app = ctk.CTk()
+
+usuario1 = {
+    "Ulises": "uli123",
+    "jefe": "123",
+}
+
+usuario2 = {
+    "Agustin": "agus123",
+}
 
 # En lugar de usar app.geometry con winfo_screenwidth...
 # Usa esto para que se abra maximizada de una:
@@ -17,13 +27,13 @@ app.configure(fg_color="#920202")
 # Frame
 frame = ctk.CTkFrame(
     app,
-    width=475,
-    height=450,
+    width=425,
+    height=380,
     corner_radius=20
       # color del frame
 )
 
-frame.place(relx=0.495, rely=0.5, anchor="center")
+frame.place(relx=0.495, rely=0.52, anchor="center")
 
 
 # IMPORTANTE
@@ -34,7 +44,7 @@ frame.pack_propagate(False)
 app.logo_img = ctk.CTkImage(
     light_image=Image.open("logox.png"),
     dark_image=Image.open("logox.png"),
-    size=(220,150)
+    size=(200,130)
  
 )
 
@@ -50,15 +60,25 @@ logo.place(relx=0.5, rely=0.1, anchor="center")
 # ================= FUNCION LOGIN =================
 
 def verificar_login():
+# --- LÓGICA ----
+#adentro de esta función deben realizar la validación
 
-    usuario_texto = usuario.get()
-    contraseña_texto = contraseña.get()
+    # .get() extrae lo que se coloca en los campos de texto
+    n1 = usuario.get()
+    n2 = contrasena.get()
 
-    if usuario_texto == "jefe" and contraseña_texto == "123":
-
-        app.withdraw() # Esto solo esconde la ventana, NO la cierra
-
+    # Validar contra los diccionarios (usuario: contraseña)
+    if usuario1.get(n1) == n2:
+        app.withdraw()
         panel.abrir_panel()
+        return
+
+    if usuario2.get(n1) == n2:
+        app.withdraw()
+        panelempleado.abrir_panel()
+        return
+
+    messagebox.showerror("Error", "Usuario o contraseña incorrectos")
 
 # ================= TITULO =================
 
@@ -66,7 +86,7 @@ titulo = ctk.CTkLabel(
     frame,
     text="Inicio de Sesion",
     text_color="#FFFFFF",
-    font=("Rockwell", 40, "bold", )
+    font=("poppins", 40, "bold")
 )
 
 titulo.pack(pady=20)
@@ -76,25 +96,26 @@ titulo.pack(pady=20)
 usuario = ctk.CTkEntry(
     frame,
     placeholder_text="Ingresa tu nombre de Usuario",
-    width=420,
-    height=60,
+    width=370,
+    height=50,
      font=("poppins", 15, "bold")
 )
 
-usuario.pack(pady=(30,20))
-#sasaqs
+usuario.pack(pady=(20,20))
+
 contraseña = ctk.CTkEntry(
     frame,
     placeholder_text="Ingresa Tu Contraseña",
     show="*",
-    width=420,
-    height=60,
+    width=370,
+    height=50,
 
      font=("poppins", 15, "bold")
 
 )
 
-contraseña.pack(pady=(30,20))
+contrasena = contraseña
+contrasena.pack(pady=(20,20))
 
 # ================= BOTON =================
 
@@ -103,7 +124,7 @@ boton = ctk.CTkButton(
     text="Iniciar Sesion",
     width=320,
     height=60,
-    corner_radius=20,
+    corner_radius=10,
     hover_color="#000000",
     fg_color="#920202",
     font=("poppins", 15, "bold"),
