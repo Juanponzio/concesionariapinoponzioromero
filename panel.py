@@ -62,9 +62,6 @@ def abrir_panel():
     pag_reportes = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_reportes, text="Reportes", font=("Akt", 30, "bold")).pack(pady=20)
 
-    pag_nuevo_empleado = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_nuevo_empleado, text="Nuevo Empleado", font=("Akt", 30, "bold")).pack(pady=20)
-
     pag_configuracion = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_configuracion, text="Configuración", font=("Akt", 30, "bold")).pack(pady=20)
 
@@ -78,212 +75,274 @@ def abrir_panel():
    
    
     # ================= pagina de vehiculos =================
-    def agregar_auto():
-        marca = entry_marca.get()
-        modelo = entry_modelo.get()
-        kilometraje = entry_km.get()
-        transmision = combo_transmision.get()
-        direccion = combo_direccion.get()
-        segmento = combo_segmento.get()
-        cilindrada = entry_cilindrada.get()
+    # ================= NUEVO VEHICULO =================
+    vehiculos_data = []
 
-        if not all([marca, modelo, kilometraje, transmision, direccion, segmento, cilindrada]):
-            messagebox.showerror("Error", "Completa todos los campos")
+    pag_nuevo_vehiculo = ctk.CTkScrollableFrame(main_content, fg_color="#1E1E1E")
+
+    ctk.CTkLabel(
+        pag_nuevo_vehiculo,
+        text="Registrar Nuevo Vehiculo",
+        font=("Akt", 32, "bold"),
+        text_color="white"
+    ).pack(anchor="w", padx=20, pady=(20, 5))
+
+    ctk.CTkLabel(
+        pag_nuevo_vehiculo,
+        text="Agregar vehiculo al inventario",
+        font=("Akt", 16),
+        text_color="#AAAAAA"
+    ).pack(anchor="w", padx=20)
+
+    frame_form_vehiculo = ctk.CTkFrame(
+        pag_nuevo_vehiculo,
+        fg_color="#252525",
+        border_color="#660000",
+        border_width=1,
+        corner_radius=15
+    )
+    frame_form_vehiculo.pack(fill="both", expand=True, padx=20, pady=30)
+
+    for i in range(2):
+        frame_form_vehiculo.grid_columnconfigure(i, weight=1)
+
+    ctk.CTkLabel(
+        frame_form_vehiculo,
+        text="Informacion del Vehiculo",
+        font=("Akt", 22, "bold"),
+        text_color="white"
+    ).grid(row=0, column=0, columnspan=2, sticky="w", padx=25, pady=(25, 5))
+
+    ctk.CTkLabel(
+        frame_form_vehiculo,
+        text="Complete todos los campos requeridos",
+        font=("Akt", 14),
+        text_color="#AAAAAA"
+    ).grid(row=1, column=0, columnspan=2, sticky="w", padx=25, pady=(0, 15))
+
+    ctk.CTkFrame(frame_form_vehiculo, height=1, fg_color="#4E0000").grid(
+        row=2, column=0, columnspan=2, padx=25, pady=(0, 20), sticky="ew"
+    )
+
+    def label_vehiculo(texto, fila, columna):
+        ctk.CTkLabel(
+            frame_form_vehiculo,
+            text=texto,
+            font=("Akt", 14, "bold"),
+            text_color="white"
+        ).grid(row=fila, column=columna, padx=25, pady=(0, 6), sticky="w")
+
+    def entry_vehiculo(fila, columna, placeholder=""):
+        entry = ctk.CTkEntry(
+            frame_form_vehiculo,
+            height=42,
+            fg_color="#1E1E1E",
+            border_color="#660000",
+            border_width=1,
+            corner_radius=10,
+            placeholder_text=placeholder
+        )
+        entry.grid(row=fila, column=columna, padx=25, pady=(0, 20), sticky="ew")
+        return entry
+
+    def combo_vehiculo(fila, columna, opciones):
+        combo = ctk.CTkComboBox(
+            frame_form_vehiculo,
+            values=opciones,
+            height=42,
+            fg_color="#1E1E1E",
+            border_color="#660000",
+            border_width=1,
+            button_color="#1E1E1E",
+            button_hover_color="#920202",
+            dropdown_fg_color="#252525",
+            dropdown_hover_color="#920202"
+        )
+        combo.grid(row=fila, column=columna, padx=25, pady=(0, 20), sticky="ew")
+        combo.set(opciones[0])
+        return combo
+
+    label_vehiculo("Marca *", 3, 0)
+    label_vehiculo("Modelo *", 3, 1)
+    entry_marca = entry_vehiculo(4, 0, "Toyota, Ford, Chevrolet...")
+    entry_modelo = entry_vehiculo(4, 1, "Corolla, Ranger, Onix...")
+
+    label_vehiculo("Año *", 5, 0)
+    label_vehiculo("Precio (USD) *", 5, 1)
+    entry_anio = entry_vehiculo(6, 0, "2026")
+    entry_precio = entry_vehiculo(6, 1, "25000")
+
+    label_vehiculo("Tipo *", 7, 0)
+    label_vehiculo("Color *", 7, 1)
+    combo_tipo = combo_vehiculo(8, 0, ["Sedan", "SUV", "Pickup", "Hatchback", "Deportivo"])
+    entry_color = entry_vehiculo(8, 1, "Blanco, Negro, Rojo...")
+
+    label_vehiculo("Kilometraje *", 9, 0)
+    label_vehiculo("Motor", 9, 1)
+    entry_km = entry_vehiculo(10, 0, "0")
+    entry_motor = entry_vehiculo(10, 1, "2.0L Turbo")
+
+    label_vehiculo("Transmision *", 11, 0)
+    label_vehiculo("Combustible *", 11, 1)
+    combo_transmision = combo_vehiculo(12, 0, ["Automatica", "Manual"])
+    combo_combustible = combo_vehiculo(12, 1, ["Nafta", "Diesel", "Hibrido", "Electrico", "GNC"])
+
+    label_vehiculo("Dominio / Patente *", 13, 0)
+    label_vehiculo("VIN (Numero de Chasis)", 13, 1)
+    entry_dominio = entry_vehiculo(14, 0, "AB123CD")
+    entry_vin = entry_vehiculo(14, 1, "1HGBH41JXMN109186")
+
+    label_vehiculo("Descripcion", 15, 0)
+    entry_descripcion = ctk.CTkTextbox(
+        frame_form_vehiculo,
+        height=100,
+        fg_color="#1E1E1E",
+        border_color="#660000",
+        border_width=1,
+        corner_radius=10
+    )
+    entry_descripcion.grid(row=16, column=0, columnspan=2, padx=25, pady=(0, 25), sticky="ew")
+
+    def limpiar_campos_vehiculo():
+        for entry in [entry_marca, entry_modelo, entry_anio, entry_precio, entry_color, entry_km, entry_motor, entry_dominio, entry_vin]:
+            entry.delete(0, "end")
+        entry_descripcion.delete("1.0", "end")
+        combo_tipo.set("Sedan")
+        combo_transmision.set("Automatica")
+        combo_combustible.set("Nafta")
+
+    def registrar_vehiculo():
+        datos = (
+            entry_marca.get(), entry_modelo.get(), entry_anio.get(), entry_precio.get(),
+            combo_tipo.get(), entry_color.get(), entry_km.get(), entry_motor.get(),
+            combo_transmision.get(), combo_combustible.get(),
+            entry_dominio.get().upper(), entry_vin.get(),
+            entry_descripcion.get("1.0", "end").strip()
+        )
+        requeridos = [datos[0], datos[1], datos[2], datos[3], datos[4], datos[5], datos[6], datos[8], datos[9], datos[10]]
+
+        if not all(requeridos):
+            messagebox.showerror("Error", "Completa todos los campos requeridos")
             return
 
-        tabla.insert("", "end", values=(marca, modelo, kilometraje, transmision, direccion, segmento, cilindrada))
-        limpiar_campos()
-        messagebox.showinfo("Éxito", "Auto agregado al stock")
+        vehiculos_data.append(datos)
+        limpiar_campos_vehiculo()
+        messagebox.showinfo("Vehiculo Registrado", "El vehiculo fue registrado correctamente")
 
-    def limpiar_campos():
-        entry_marca.delete(0, "end")
-        entry_modelo.delete(0, "end")
-        entry_km.delete(0, "end")
-        entry_cilindrada.delete(0, "end")
-        combo_transmision.set("")
-        combo_direccion.set("")
-        combo_segmento.set("")
+    frame_btn_vehiculo = ctk.CTkFrame(frame_form_vehiculo, fg_color="transparent")
+    frame_btn_vehiculo.grid(row=17, column=0, columnspan=2, padx=25, pady=(5, 30), sticky="ew")
+    frame_btn_vehiculo.grid_columnconfigure(0, weight=1)
 
-    def eliminar_auto():
-        seleccionado = tabla.selection()
-        if not seleccionado:
-            messagebox.showwarning("Atención", "Selecciona un auto")
-            return
-        tabla.delete(seleccionado)
-        messagebox.showinfo("Eliminado", "Auto eliminado")
+    ctk.CTkButton(
+        frame_btn_vehiculo,
+        text="Registrar Vehiculo",
+        height=50,
+        fg_color="#E02020",
+        hover_color="#B00000",
+        font=("Akt", 16, "bold"),
+        command=registrar_vehiculo
+    ).grid(row=0, column=0, padx=(0, 15), sticky="ew")
 
-    pag_nuevo_vehiculo = ctk.CTkFrame(main_content, fg_color="transparent")
-    ctk.CTkLabel(pag_nuevo_vehiculo, text="REGISTRO DE STOCK", font=("Akt", 32, "bold"), text_color="#ffffff").pack(pady=20)
-
-    frame_form = ctk.CTkFrame(pag_nuevo_vehiculo, fg_color="#111111", corner_radius=15)
-    frame_form.pack(padx=20, pady=10, fill="x")
-
-    for i in range(4):
-        frame_form.grid_columnconfigure(i, weight=1)
-
-    # Fila 0: Marca y Modelo
-    ctk.CTkLabel(frame_form, text="Marca", font=("Akt", 14, "bold")).grid(row=0, column=0, padx=10, pady=10)
-    entry_marca = ctk.CTkEntry(frame_form, width=200, fg_color="#1a1a1a", border_width=0)
-    entry_marca.grid(row=0, column=1)
-
-    ctk.CTkLabel(frame_form, text="Modelo", font=("Akt", 14, "bold")).grid(row=0, column=2, padx=10, pady=10)
-    entry_modelo = ctk.CTkEntry(frame_form, width=200, fg_color="#1a1a1a", border_width=0)
-    entry_modelo.grid(row=0, column=3)
-
-    # Fila 1: KM y Transmisión
-    ctk.CTkLabel(frame_form, text="Kilometraje", font=("Akt", 14, "bold")).grid(row=1, column=0, padx=10, pady=10)
-    entry_km = ctk.CTkEntry(frame_form, width=200, fg_color="#1a1a1a", border_width=0)
-    entry_km.grid(row=1, column=1)
-
-    ctk.CTkLabel(frame_form, text="Transmisión", font=("Akt", 14, "bold")).grid(row=1, column=2, padx=10, pady=10)
-    combo_transmision = ctk.CTkComboBox(frame_form, values=["Manual", "Automática"], width=200, fg_color="#1a1a1a", button_color="#990000", border_width=0)
-    combo_transmision.grid(row=1, column=3)
-
-    # Fila 2: Dirección y Segmento
-    ctk.CTkLabel(frame_form, text="Dirección", font=("Akt", 14, "bold")).grid(row=2, column=0, padx=10, pady=10)
-    combo_direccion = ctk.CTkComboBox(frame_form, values=["Hidráulica", "Eléctrica", "Mecánica"], width=200, fg_color="#1a1a1a", button_color="#990000", border_width=0)
-    combo_direccion.grid(row=2, column=1)
-
-    ctk.CTkLabel(frame_form, text="Segmento", font=("Akt", 14, "bold")).grid(row=2, column=2, padx=10, pady=10)
-    combo_segmento = ctk.CTkComboBox(frame_form, values=["Sedán", "SUV", "Pickup", "Hatchback", "Deportivo"], width=200, fg_color="#1a1a1a", button_color="#990000", border_width=0)
-    combo_segmento.grid(row=2, column=3)
-
-    # Fila 3: Cilindrada
-    ctk.CTkLabel(frame_form, text="Cilindrada", font=("Akt", 14, "bold")).grid(row=3, column=0, padx=10, pady=10)
-    entry_cilindrada = ctk.CTkEntry(frame_form, width=200, fg_color="#1a1a1a", border_width=0)
-    entry_cilindrada.grid(row=3, column=1)
-
-    # Botones
-    frame_botones = ctk.CTkFrame(pag_nuevo_vehiculo, fg_color="transparent")
-    frame_botones.pack(pady=15)
-
-    btn_agregar = ctk.CTkButton(frame_botones, text="Agregar Auto", command=agregar_auto, fg_color="#b30000", hover_color="#ff1a1a", font=("Akt", 15, "bold"))
-    btn_agregar.grid(row=0, column=0, padx=15)
-
-    btn_eliminar = ctk.CTkButton(frame_botones, text="Eliminar Auto", command=eliminar_auto, fg_color="#660000", hover_color="#cc0000", font=("Akt", 15, "bold"))
-    btn_eliminar.grid(row=0, column=1, padx=15)
-
-    # Tabla
-    style = ttk.Style()
-    style.theme_use("default")
-    style.configure("Treeview", background="#0b0b0b", foreground="white", fieldbackground="#0b0b0b", rowheight=40, borderwidth=0)
-    style.configure("Treeview.Heading", background="#990000", foreground="white", relief="flat")
-    style.map("Treeview", background=[("selected", "#cc0000")])
-
-    columnas = ("Marca", "Modelo", "KM", "Transmisión", "Dirección", "Segmento", "Cilindrada")
-    tabla = ttk.Treeview(pag_nuevo_vehiculo, columns=columnas, show="headings", height=10)
-    for col in columnas:
-        tabla.heading(col, text=col)
-        tabla.column(col, width=100, anchor="center")
-    tabla.pack(fill="both", expand=True, padx=20, pady=10)
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
+    ctk.CTkButton(
+        frame_btn_vehiculo,
+        text="Cancelar",
+        width=160,
+        height=50,
+        fg_color="#333333",
+        hover_color="#555555",
+        font=("Akt", 16, "bold"),
+        command=limpiar_campos_vehiculo
+    ).grid(row=0, column=1, sticky="e")
     # ================= EMPLEADOS =================
     empleados_data = [
-    ("Carlos Zalcas", "Gerente General", "Administración", "carlos@zalcas.com", "2020-01-15", "$120.000", "Editar | Eliminar"),
-    ("Ana Martínez", "Vendedor Senior", "Ventas", "ana@zalcas.com", "2021-03-10", "$65.000", "Editar | Eliminar"),
-    ("Roberto Silva", "Mecánico", "Servicio Técnico", "roberto@zalcas.com", "2021-06-20", "$55.000", "Editar | Eliminar"),
-]
+        ("Carlos", "Zalcas", "12345678", "1978-04-12", "Casado", "+54 11 1234-5678", "carlos@zalcas.com", "Buenos Aires", "Av. Siempre Viva 123", "Gerente General", "Administración", "2020-01-15", "$120.000", "Tiempo Completo", "carlos@zalcas.com", "+54 11 8765-4321"),
+        ("Ana", "Martínez", "23456789", "1990-09-01", "Soltera", "+54 11 2345-6789", "ana@zalcas.com", "La Plata", "Calle Falsa 456", "Vendedor Senior", "Ventas", "2021-03-10", "$65.000", "Medio Tiempo", "ana@zalcas.com", "+54 11 9876-5432"),
+        ("Roberto", "Silva", "34567890", "1985-12-22", "Casado", "+54 11 3456-7890", "roberto@zalcas.com", "Quilmes", "Ruta 2 km 34", "Mecánico", "Servicio Técnico", "2021-06-20", "$55.000", "Turno Mañana", "roberto@zalcas.com", "+54 11 7654-3210"),
+    ]
+
+    empleado_editando = None
 
     def cargar_empleados():
         for item in tabla_empleados.get_children():
             tabla_empleados.delete(item)
-        for empleado in empleados_data:
-            tabla_empleados.insert("", "end", values=empleado)
+        for idx, empleado in enumerate(empleados_data):
+            nombre_completo = f"{empleado[0]} {empleado[1]}"
+            tabla_empleados.insert("", "end", iid=str(idx), values=(nombre_completo, empleado[9], empleado[10], empleado[14], empleado[11], empleado[12], "Editar | Eliminar"))
 
     def buscar_empleado(event=None):
         filtro = buscador_empleados.get().lower()
         for item in tabla_empleados.get_children():
             tabla_empleados.delete(item)
-        for empleado in empleados_data:
-            if filtro in empleado[0].lower() or filtro in empleado[1].lower():
-                tabla_empleados.insert("", "end", values=empleado)
+        for idx, empleado in enumerate(empleados_data):
+            nombre_completo = f"{empleado[0]} {empleado[1]}"
+            if filtro in nombre_completo.lower() or filtro in empleado[9].lower() or filtro in empleado[10].lower():
+                tabla_empleados.insert("", "end", iid=str(idx), values=(nombre_completo, empleado[9], empleado[10], empleado[14], empleado[11], empleado[12], "Editar | Eliminar"))
 
     def eliminar_empleado():
         seleccionado = tabla_empleados.selection()
         if not seleccionado:
-            messagebox.showwarning("Atención", "Selecciona un auto")
+            messagebox.showwarning("Atención", "Selecciona un empleado")
             return
-        tabla_empleados.delete(seleccionado)
+        item_id = seleccionado[0]
+        if item_id.isdigit():
+            idx = int(item_id)
+        else:
+            idx = None
+        if idx is not None and 0 <= idx < len(empleados_data):
+            empleados_data.pop(idx)
+        cargar_empleados()
         messagebox.showinfo("Éxito", "Empleado eliminado")
+
+    def abrir_formulario_empleado(index):
+        nonlocal empleado_editando
+
+        datos = empleados_data[index]
+        entry_nombre_emp.delete(0, "end")
+        entry_nombre_emp.insert(0, datos[0])
+        entry_apellido_emp.delete(0, "end")
+        entry_apellido_emp.insert(0, datos[1])
+        entry_dni_emp.delete(0, "end")
+        entry_dni_emp.insert(0, datos[2])
+        entry_nacimiento_emp.delete(0, "end")
+        entry_nacimiento_emp.insert(0, datos[3])
+        combo_estado_civil.set(datos[4])
+        entry_telefono_emp.delete(0, "end")
+        entry_telefono_emp.insert(0, datos[5])
+        entry_email_emp.delete(0, "end")
+        entry_email_emp.insert(0, datos[6])
+        entry_ciudad_emp.delete(0, "end")
+        entry_ciudad_emp.insert(0, datos[7])
+        entry_direccion_emp.delete(0, "end")
+        entry_direccion_emp.insert(0, datos[8])
+        entry_puesto_emp.delete(0, "end")
+        entry_puesto_emp.insert(0, datos[9])
+        combo_departamento.set(datos[10])
+        entry_fecha_ingreso.delete(0, "end")
+        entry_fecha_ingreso.insert(0, datos[11])
+        entry_salario.delete(0, "end")
+        entry_salario.insert(0, datos[12].lstrip("$"))
+        combo_horario.set(datos[13])
+        entry_contacto.delete(0, "end")
+        entry_contacto.insert(0, datos[14])
+        entry_tel_emergencia.delete(0, "end")
+        entry_tel_emergencia.insert(0, datos[15])
+
+        btn_registrar.configure(text="Guardar Cambios")
+        titulo_emp_nuevo.configure(text="Editar Empleado")
+        subtitulo_emp_nuevo.configure(text="Modifica los datos del empleado")
+        empleado_editando = index
+        mostrar_contenido("Nuevo Empleado", btn_nempleado)
 
     def editar_empleado():
         seleccionado = tabla_empleados.selection()
         if not seleccionado:
             messagebox.showwarning("Atención", "Selecciona un empleado")
             return
-
-        valores = tabla_empleados.item(seleccionado, "values")
-
-        ventana_editar = ctk.CTkToplevel()
-        ventana_editar.title("Editar Empleado")
-        ventana_editar.geometry("500x500")
-        ventana_editar.configure(fg_color="#1E1E1E")
-
-        ctk.CTkLabel(
-            ventana_editar,
-            text="Editar Empleado",
-            font=("Akt", 28, "bold")
-        ).pack(pady=20)
-
-        entry_nombre = ctk.CTkEntry(ventana_editar, width=350)
-        entry_nombre.pack(pady=10)
-        entry_nombre.insert(0, valores[0])
-
-        entry_puesto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_puesto.pack(pady=10)
-        entry_puesto.insert(0, valores[1])
-
-        entry_departamento = ctk.CTkEntry(ventana_editar, width=350)
-        entry_departamento.pack(pady=10)
-        entry_departamento.insert(0, valores[2])
-
-        entry_contacto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_contacto.pack(pady=10)
-        entry_contacto.insert(0, valores[3])
-
-        entry_fecha = ctk.CTkEntry(ventana_editar, width=350)
-        entry_fecha.pack(pady=10)
-        entry_fecha.insert(0, valores[4])
-
-        entry_salario = ctk.CTkEntry(ventana_editar, width=350)
-        entry_salario.pack(pady=10)
-        entry_salario.insert(0, valores[5])
-
-        def guardar_cambios():
-            tabla_empleados.item(
-                seleccionado,
-                values=(
-                    entry_nombre.get(),
-                    entry_puesto.get(),
-                    entry_departamento.get(),
-                    entry_contacto.get(),
-                    entry_fecha.get(),
-                    entry_salario.get(),
-                    "Editar | Eliminar"
-                )
-            )
-
-            messagebox.showinfo("Éxito", "Empleado actualizado")
-            ventana_editar.destroy()
-
-        btn_guardar = ctk.CTkButton(
-            ventana_editar,
-            text="Guardar Cambios",
-            fg_color="#920202",
-            hover_color="#B00000",
-            command=guardar_cambios
-        )
-
-        btn_guardar.pack(pady=20)
+        item_id = seleccionado[0]
+        if item_id.isdigit():
+            abrir_formulario_empleado(int(item_id))
+        else:
+            abrir_formulario_empleado(list(tabla_empleados.get_children()).index(item_id))
 
     pag_empleados = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
 
@@ -298,30 +357,9 @@ def abrir_panel():
     buscador_empleados.pack(anchor="w", padx=20, pady=(10,5))
     # El binding se resuelve cuando la función exista al ejecutarse el evento
     buscador_empleados.bind("<KeyRelease>", lambda e: buscar_empleado())
+    # (Se suprimieron campos duplicados/incorrectos del formulario antiguo)
 
-    # Fila 2: Dirección y Segmento
-    ctk.CTkLabel(frame_form, text="Dirección", font=("Akt", 14, "bold")).grid(row=2, column=0, padx=10, pady=10)
-    combo_direccion = ctk.CTkComboBox(frame_form, values=["Hidráulica", "Eléctrica", "Mecánica"], width=200, fg_color="#1a1a1a", button_color="#990000", border_width=0)
-    combo_direccion.grid(row=2, column=1)
-
-    ctk.CTkLabel(frame_form, text="Segmento", font=("Akt", 14, "bold")).grid(row=2, column=2, padx=10, pady=10)
-    combo_segmento = ctk.CTkComboBox(frame_form, values=["Sedán", "SUV", "Pickup", "Hatchback", "Deportivo"], width=200, fg_color="#1a1a1a", button_color="#990000", border_width=0)
-    combo_segmento.grid(row=2, column=3)
-
-    # Fila 3: Cilindrada
-    ctk.CTkLabel(frame_form, text="Cilindrada", font=("Akt", 14, "bold")).grid(row=3, column=0, padx=10, pady=10)
-    entry_cilindrada = ctk.CTkEntry(frame_form, width=200, fg_color="#1a1a1a", border_width=0)
-    entry_cilindrada.grid(row=3, column=1)
-
-    # Botones
-    frame_botones = ctk.CTkFrame(pag_nuevo_vehiculo, fg_color="transparent")
-    frame_botones.pack(pady=15)
-
-    btn_agregar = ctk.CTkButton(frame_botones, text="Agregar Auto", command=agregar_auto, fg_color="#b30000", hover_color="#ff1a1a", font=("Akt", 15, "bold"))
-    btn_agregar.grid(row=0, column=0, padx=15)
-
-    btn_eliminar = ctk.CTkButton(frame_botones, text="Eliminar Auto", command=eliminar_auto, fg_color="#660000", hover_color="#cc0000", font=("Akt", 15, "bold"))
-    btn_eliminar.grid(row=0, column=1, padx=15)
+    # (botones de acción del formulario de vehículo movidos/centralizados más abajo)
 
     # Tabla
     style = ttk.Style()
@@ -357,74 +395,16 @@ def abrir_panel():
 
     # ---------- Acciones por fila: abrir editor/confirmar eliminación ----------
     def editar_empleado_item(item_id):
-        valores = tabla_empleados.item(item_id, "values")
-
-        ventana_editar = ctk.CTkToplevel()
-        ventana_editar.title("Editar Empleado")
-        ventana_editar.geometry("500x500")
-        ventana_editar.configure(fg_color="#1E1E1E")
-
-        ctk.CTkLabel(ventana_editar, text="Editar Empleado", font=("Akt", 28, "bold")).pack(pady=20)
-
-        entry_nombre = ctk.CTkEntry(ventana_editar, width=350)
-        entry_nombre.pack(pady=10)
-        entry_nombre.insert(0, valores[0])
-
-        entry_puesto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_puesto.pack(pady=10)
-        entry_puesto.insert(0, valores[1])
-
-        entry_departamento = ctk.CTkEntry(ventana_editar, width=350)
-        entry_departamento.pack(pady=10)
-        entry_departamento.insert(0, valores[2])
-
-        entry_contacto = ctk.CTkEntry(ventana_editar, width=350)
-        entry_contacto.pack(pady=10)
-        entry_contacto.insert(0, valores[3])
-
-        entry_fecha = ctk.CTkEntry(ventana_editar, width=350)
-        entry_fecha.pack(pady=10)
-        entry_fecha.insert(0, valores[4])
-
-        entry_salario = ctk.CTkEntry(ventana_editar, width=350)
-        entry_salario.pack(pady=10)
-        entry_salario.insert(0, valores[5])
-
-        def guardar_cambios_item():
-            nuevos = (
-                entry_nombre.get(),
-                entry_puesto.get(),
-                entry_departamento.get(),
-                entry_contacto.get(),
-                entry_fecha.get(),
-                entry_salario.get(),
-                "Editar | Eliminar"
-            )
-
-            tabla_empleados.item(item_id, values=nuevos)
-            # Actualizar en empleados_data
-            try:
-                idx = list(tabla_empleados.get_children()).index(item_id)
-                empleados_data[idx] = nuevos
-            except Exception:
-                pass
-
-            messagebox.showinfo("Éxito", "Empleado actualizado")
-            ventana_editar.destroy()
-
-        btn_guardar = ctk.CTkButton(ventana_editar, text="Guardar Cambios", fg_color="#920202", hover_color="#B00000", command=guardar_cambios_item)
-        btn_guardar.pack(pady=20)
+        if item_id.isdigit():
+            abrir_formulario_empleado(int(item_id))
+        else:
+            abrir_formulario_empleado(list(tabla_empleados.get_children()).index(item_id))
 
     def eliminar_empleado_item(item_id):
-        try:
-            idx = list(tabla_empleados.get_children()).index(item_id)
-        except ValueError:
-            idx = None
-
+        idx = int(item_id) if item_id.isdigit() else None
         tabla_empleados.delete(item_id)
         if idx is not None and 0 <= idx < len(empleados_data):
             empleados_data.pop(idx)
-
         messagebox.showinfo("Éxito", "Empleado eliminado")
 
     def confirmar_eliminar_item(item_id):
@@ -453,20 +433,17 @@ def abrir_panel():
 
         col_index = int(col.replace('#', '')) - 1
         if col_index >= 0 and col_index < len(columnas_empleados) and columnas_empleados[col_index] == "Acciones":
-            # Abrir pequeño popup con botones Editar/Eliminar
-            popup = ctk.CTkToplevel()
-            popup.overrideredirect(True)
-            try:
-                popup.geometry(f"+{event.x_root}+{event.y_root}")
-            except Exception:
-                pass
-
-            ctk.CTkButton(popup, text="Editar", fg_color="#8B0000", command=lambda: (popup.destroy(), editar_empleado_item(row))).pack(fill="x")
-            ctk.CTkButton(popup, text="Eliminar", fg_color="#400000", command=lambda: (popup.destroy(), confirmar_eliminar_item(row))).pack(fill="x")
-
-            # Cerrar popup si pierde foco
-            popup.focus_force()
-            popup.bind("<FocusOut>", lambda e: popup.destroy())
+            # Ejecutar acción directa según el área del clic en el texto "Editar | Eliminar"
+            bbox = tabla_empleados.bbox(row, col)
+            if bbox:
+                cell_x = event.x - bbox[0]
+                if cell_x < bbox[2] * 0.5:
+                    editar_empleado_item(row)
+                else:
+                    confirmar_eliminar_item(row)
+            else:
+                # En caso de no obtener bbox, usar edición por defecto
+                editar_empleado_item(row)
 
     tabla_empleados.bind("<Button-1>", on_tabla_click)
 
@@ -498,6 +475,238 @@ def abrir_panel():
     btn_eliminar_emp.grid(row=0, column=1, padx=10)
 
     cargar_empleados()
+
+    # ================= NUEVO EMPLEADO =================
+
+    pag_nuevo_empleado = ctk.CTkScrollableFrame(
+        main_content,
+        fg_color="#1E1E1E"
+    )
+
+    titulo_emp_nuevo = ctk.CTkLabel(
+        pag_nuevo_empleado,
+        text="Registrar Nuevo Empleado",
+        font=("Akt", 32, "bold"),
+        text_color="white"
+    )
+    titulo_emp_nuevo.pack(anchor="w", padx=20, pady=(20,5))
+
+    subtitulo_emp_nuevo = ctk.CTkLabel(
+        pag_nuevo_empleado,
+        text="Agregar empleado al sistema",
+        font=("Akt", 16),
+        text_color="#AAAAAA"
+    )
+    subtitulo_emp_nuevo.pack(anchor="w", padx=20)
+
+    # CONTENEDOR
+    frame_form_emp = ctk.CTkFrame(
+        pag_nuevo_empleado,
+        fg_color="#252525",
+        border_color="#660000",
+        border_width=1,
+        corner_radius=15
+    )
+
+    frame_form_emp.pack(fill="both", expand=True, padx=20, pady=20)
+
+    for i in range(2):
+        frame_form_emp.grid_columnconfigure(i, weight=1)
+
+    # ---------------- INFORMACIÓN PERSONAL ----------------
+
+    titulo_personal = ctk.CTkLabel(
+        frame_form_emp,
+        text="Información Personal",
+        font=("Akt", 22, "bold"),
+        text_color="#ff3333"
+    )
+    titulo_personal.grid(row=0, column=0, columnspan=2, sticky="w", padx=20, pady=(20,10))
+
+    entry_nombre_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="Nombre")
+    entry_nombre_emp.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_apellido_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="Apellido")
+    entry_apellido_emp.grid(row=1, column=1, padx=20, pady=10, sticky="ew")
+
+    entry_dni_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="DNI")
+    entry_dni_emp.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_nacimiento_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="dd/mm/aaaa")
+    entry_nacimiento_emp.grid(row=2, column=1, padx=20, pady=10, sticky="ew")
+
+    combo_estado_civil = ctk.CTkComboBox(
+        frame_form_emp,
+        values=["Soltero", "Casado", "Divorciado", "Viudo"]
+    )
+    combo_estado_civil.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_telefono_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="+54 11 1234-5678")
+    entry_telefono_emp.grid(row=3, column=1, padx=20, pady=10, sticky="ew")
+
+    entry_email_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="empleado@zalcas.com")
+    entry_email_emp.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_ciudad_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="Ciudad")
+    entry_ciudad_emp.grid(row=4, column=1, padx=20, pady=10, sticky="ew")
+
+    entry_direccion_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="Dirección")
+    entry_direccion_emp.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
+
+    # ---------------- INFORMACIÓN LABORAL ----------------
+
+    titulo_laboral = ctk.CTkLabel(
+        frame_form_emp,
+        text="Información Laboral",
+        font=("Akt", 22, "bold"),
+        text_color="#ff3333"
+    )
+    titulo_laboral.grid(row=6, column=0, columnspan=2, sticky="w", padx=20, pady=(20,10))
+
+    entry_puesto_emp = ctk.CTkEntry(frame_form_emp, placeholder_text="Puesto")
+    entry_puesto_emp.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
+
+    combo_departamento = ctk.CTkComboBox(
+        frame_form_emp,
+        values=[
+            "Ventas",
+            "Administración",
+            "Mecánica",
+            "RRHH",
+            "Finanzas"
+        ]
+    )
+    combo_departamento.grid(row=7, column=1, padx=20, pady=10, sticky="ew")
+
+    entry_fecha_ingreso = ctk.CTkEntry(frame_form_emp, placeholder_text="dd/mm/aaaa")
+    entry_fecha_ingreso.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_salario = ctk.CTkEntry(frame_form_emp, placeholder_text="Salario")
+    entry_salario.grid(row=8, column=1, padx=20, pady=10, sticky="ew")
+
+    combo_horario = ctk.CTkComboBox(
+        frame_form_emp,
+        values=[
+            "Tiempo Completo",
+            "Medio Tiempo",
+            "Turno Mañana",
+            "Turno Tarde"
+        ]
+    )
+    combo_horario.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+
+    # ---------------- CONTACTO EMERGENCIA ----------------
+
+    titulo_emergencia = ctk.CTkLabel(
+        frame_form_emp,
+        text="Contacto de Emergencia",
+        font=("Akt", 22, "bold"),
+        text_color="#ff3333"
+    )
+    titulo_emergencia.grid(row=10, column=0, columnspan=2, sticky="w", padx=20, pady=(20,10))
+
+    entry_contacto = ctk.CTkEntry(
+        frame_form_emp,
+        placeholder_text="Nombre del contacto"
+    )
+    entry_contacto.grid(row=11, column=0, padx=20, pady=10, sticky="ew")
+
+    entry_tel_emergencia = ctk.CTkEntry(
+        frame_form_emp,
+        placeholder_text="Teléfono de emergencia"
+    )
+    entry_tel_emergencia.grid(row=11, column=1, padx=20, pady=10, sticky="ew")
+
+    # ---------------- FUNCIONES ----------------
+
+    def limpiar_formulario_empleado():
+        nonlocal empleado_editando
+        entry_nombre_emp.delete(0, "end")
+        entry_apellido_emp.delete(0, "end")
+        entry_dni_emp.delete(0, "end")
+        entry_nacimiento_emp.delete(0, "end")
+        combo_estado_civil.set("")
+        entry_telefono_emp.delete(0, "end")
+        entry_email_emp.delete(0, "end")
+        entry_ciudad_emp.delete(0, "end")
+        entry_direccion_emp.delete(0, "end")
+        entry_puesto_emp.delete(0, "end")
+        combo_departamento.set("")
+        entry_fecha_ingreso.delete(0, "end")
+        entry_salario.delete(0, "end")
+        combo_horario.set("")
+        entry_contacto.delete(0, "end")
+        entry_tel_emergencia.delete(0, "end")
+        btn_registrar.configure(text="Registrar Empleado")
+        titulo_emp_nuevo.configure(text="Registrar Nuevo Empleado")
+        subtitulo_emp_nuevo.configure(text="Agregar empleado al sistema")
+        empleado_editando = None
+
+    def registrar_empleado():
+        nonlocal empleado_editando
+        nuevo = (
+            entry_nombre_emp.get(),
+            entry_apellido_emp.get(),
+            entry_dni_emp.get(),
+            entry_nacimiento_emp.get(),
+            combo_estado_civil.get(),
+            entry_telefono_emp.get(),
+            entry_email_emp.get(),
+            entry_ciudad_emp.get(),
+            entry_direccion_emp.get(),
+            entry_puesto_emp.get(),
+            combo_departamento.get(),
+            entry_fecha_ingreso.get(),
+            f"${entry_salario.get()}",
+            combo_horario.get(),
+            entry_contacto.get(),
+            entry_tel_emergencia.get()
+        )
+
+        if empleado_editando is None:
+            empleados_data.append(nuevo)
+            messagebox.showinfo("Empleado Registrado", "El empleado fue registrado correctamente")
+        else:
+            empleados_data[empleado_editando] = nuevo
+            messagebox.showinfo("Empleado Actualizado", "Los datos del empleado fueron actualizados")
+
+        cargar_empleados()
+        limpiar_formulario_empleado()
+
+    # ---------------- BOTONES ----------------
+
+    frame_btn_emp = ctk.CTkFrame(
+        frame_form_emp,
+        fg_color="transparent"
+    )
+    frame_btn_emp.grid(
+        row=12,
+        column=0,
+        columnspan=2,
+        pady=30
+    )
+
+    btn_registrar = ctk.CTkButton(
+        frame_btn_emp,
+        text="Registrar Empleado",
+        width=300,
+        height=50,
+        fg_color="#E02020",
+        hover_color="#B00000",
+        command=registrar_empleado
+    )
+    btn_registrar.grid(row=0, column=0, padx=10)
+
+    btn_cancelar = ctk.CTkButton(
+        frame_btn_emp,
+        text="Cancelar",
+        width=180,
+        height=50,
+        fg_color="#333333",
+        hover_color="#555555",
+        command=limpiar_formulario_empleado
+    )
+    btn_cancelar.grid(row=0, column=1, padx=10)
 
     diccionario_paginas = {
         "Estadisticas": pag_estadisticas,
