@@ -56,11 +56,245 @@ def abrir_panel():
     pag_stock = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_stock, text="Gestión de Stock", font=("Akt", 30, "bold")).pack(pady=20)
 
-    pag_clientes = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_clientes, text="Gestión de Clientes", font=("Akt", 30, "bold")).pack(pady=20)
+    # ================= CLIENTES =================
+    clientes_data = [
+        ("Juan Pérez", "2", "juan.perez@email.com", "+54 11 2345-6789", "Buenos Aires", "2026-04-20"),
+        ("María González", "1", "maria.gonzalez@email.com", "+54 11 3456-7890", "Córdoba", "2026-04-18"),
+        ("Carlos Rodríguez", "3", "carlos.rodriguez@email.com", "+54 11 4567-8901", "Mendoza", "2026-04-15"),
+        ("Ana Martínez", "1", "ana.martinez@email.com", "+54 11 5678-9012", "Rosario", "2026-04-10"),
+    ]
 
-    pag_reportes = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_reportes, text="Reportes", font=("Akt", 30, "bold")).pack(pady=20)
+    pag_clientes = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    ctk.CTkLabel(
+        pag_clientes,
+        text="Clientes",
+        font=("Akt", 34, "bold"),
+        text_color="white"
+    ).pack(anchor="w", padx=25, pady=(25, 5))
+
+    ctk.CTkLabel(
+        pag_clientes,
+        text="Gestión de clientes y su historial de compras",
+        font=("Akt", 16),
+        text_color="#AAAAAA"
+    ).pack(anchor="w", padx=25, pady=(0, 25))
+
+    clientes_resumen = ctk.CTkFrame(pag_clientes, fg_color="transparent")
+    clientes_resumen.pack(fill="x", padx=25, pady=(0, 25))
+
+    clientes_cards_frame = ctk.CTkFrame(
+        pag_clientes,
+        fg_color="#171717",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=12
+    )
+    clientes_cards_frame.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    buscador_clientes = ctk.CTkEntry(
+        clientes_cards_frame,
+        placeholder_text="Buscar por nombre, email o ciudad...",
+        height=42,
+        fg_color="#141414",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=10
+    )
+    buscador_clientes.pack(fill="x", padx=25, pady=(25, 15))
+
+    clientes_grid = ctk.CTkFrame(clientes_cards_frame, fg_color="transparent")
+    clientes_grid.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    def crear_resumen_clientes(titulo, valor, color):
+        card = ctk.CTkFrame(
+            clientes_resumen,
+            fg_color="#171717",
+            border_color="#4E0000",
+            border_width=1,
+            corner_radius=10,
+            height=105
+        )
+        card.pack(side="left", fill="x", expand=True, padx=8)
+        card.pack_propagate(False)
+
+        ctk.CTkLabel(card, text=titulo, font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w", padx=20, pady=(18, 4))
+        ctk.CTkLabel(card, text=str(valor), font=("Akt", 28), text_color=color).pack(anchor="w", padx=20)
+
+    def actualizar_clientes(event=None):
+        for widget in clientes_resumen.winfo_children():
+            widget.destroy()
+
+        for widget in clientes_grid.winfo_children():
+            widget.destroy()
+
+        filtro = buscador_clientes.get().lower()
+
+        clientes_filtrados = []
+        for cliente in clientes_data:
+            nombre, compras, email, telefono, ciudad, ultima_compra = cliente
+            if (filtro in nombre.lower() or 
+                filtro in email.lower() or 
+                filtro in ciudad.lower() or
+                filtro in telefono.lower()):
+                clientes_filtrados.append(cliente)
+
+        # Calcular estadísticas
+        total_compras = sum(int(cliente[1]) for cliente in clientes_data)
+        promedio_compras = total_compras / len(clientes_data) if clientes_data else 0
+
+        crear_resumen_clientes("Total Clientes", len(clientes_data), "white")
+        crear_resumen_clientes("Clientes Activos", len(clientes_data), "#00D46A")
+        crear_resumen_clientes("Total Compras", total_compras, "#E02020")
+        crear_resumen_clientes("Promedio Compras", f"{promedio_compras:.1f}", "#FFB000")
+
+        # Grid de clientes
+        for i in range(2):
+            clientes_grid.grid_columnconfigure(i, weight=1)
+
+        for index, cliente in enumerate(clientes_filtrados):
+            nombre, compras, email, telefono, ciudad, ultima_compra = cliente
+
+            card = ctk.CTkFrame(
+                clientes_grid,
+                fg_color="#242424",
+                border_color="#4E0000",
+                border_width=1,
+                corner_radius=10,
+                height=280
+            )
+            card.grid(row=index // 2, column=index % 2, padx=12, pady=12, sticky="nsew")
+            card.grid_propagate(False)
+
+            # Header con nombre y botones
+            header = ctk.CTkFrame(card, fg_color="transparent")
+            header.pack(fill="x", padx=16, pady=(15, 5))
+
+            ctk.CTkLabel(
+                header,
+                text=nombre,
+                font=("Akt", 18, "bold"),
+                text_color="white"
+            ).pack(side="left")
+
+            # Número de compras en rojo
+            compras_frame = ctk.CTkFrame(header, fg_color="transparent")
+            compras_frame.pack(side="right")
+
+            ctk.CTkLabel(
+                compras_frame,
+                text=compras,
+                font=("Akt", 12, "bold"),
+                text_color="#E02020"
+            ).pack(side="right", padx=(5, 0))
+
+            ctk.CTkLabel(
+                compras_frame,
+                text="compras",
+                font=("Akt", 10),
+                text_color="#E02020"
+            ).pack(side="right")
+
+            # Email
+            email_frame = ctk.CTkFrame(card, fg_color="transparent")
+            email_frame.pack(fill="x", padx=16, pady=(10, 5))
+
+            ctk.CTkLabel(
+                email_frame,
+                text="📧",
+                font=("Akt", 14)
+            ).pack(side="left", padx=(0, 8))
+
+            ctk.CTkLabel(
+                email_frame,
+                text=email,
+                font=("Akt", 12),
+                text_color="#AAAAAA"
+            ).pack(side="left", anchor="w")
+
+            # Teléfono
+            tel_frame = ctk.CTkFrame(card, fg_color="transparent")
+            tel_frame.pack(fill="x", padx=16, pady=5)
+
+            ctk.CTkLabel(
+                tel_frame,
+                text="📱",
+                font=("Akt", 14)
+            ).pack(side="left", padx=(0, 8))
+
+            ctk.CTkLabel(
+                tel_frame,
+                text=telefono,
+                font=("Akt", 12),
+                text_color="#AAAAAA"
+            ).pack(side="left", anchor="w")
+
+            # Ubicación
+            ubi_frame = ctk.CTkFrame(card, fg_color="transparent")
+            ubi_frame.pack(fill="x", padx=16, pady=5)
+
+            ctk.CTkLabel(
+                ubi_frame,
+                text="📍",
+                font=("Akt", 14)
+            ).pack(side="left", padx=(0, 8))
+
+            ctk.CTkLabel(
+                ubi_frame,
+                text=ciudad,
+                font=("Akt", 12),
+                text_color="#AAAAAA"
+            ).pack(side="left", anchor="w")
+
+            # Última compra
+            ultima_compra_frame = ctk.CTkFrame(card, fg_color="transparent")
+            ultima_compra_frame.pack(fill="x", padx=16, pady=(10, 15))
+
+            ctk.CTkLabel(
+                ultima_compra_frame,
+                text="Última compra:",
+                font=("Akt", 12),
+                text_color="#AAAAAA"
+            ).pack(anchor="w")
+
+            ctk.CTkLabel(
+                ultima_compra_frame,
+                text=ultima_compra,
+                font=("Akt", 12),
+                text_color="white"
+            ).pack(anchor="w")
+
+            # Botones
+            botones = ctk.CTkFrame(card, fg_color="transparent")
+            botones.pack(fill="x", padx=16, pady=(0, 16))
+
+            ctk.CTkButton(
+                botones,
+                text="Ver Detalles",
+                height=36,
+                fg_color="#E02020",
+                hover_color="#B00000",
+                font=("Akt", 12, "bold")
+            ).pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+            ctk.CTkButton(
+                botones,
+                text="Eliminar",
+                width=80,
+                height=36,
+                fg_color="#4A1E1E",
+                hover_color="#7A2525",
+                font=("Akt", 11, "bold"),
+                command=lambda c=cliente: eliminar_cliente(c)
+            ).pack(side="right")
+
+    def eliminar_cliente(cliente):
+        if messagebox.askyesno("Eliminar cliente", "¿Querés eliminar este cliente?"):
+            clientes_data.remove(cliente)
+            actualizar_clientes()
+
+    buscador_clientes.bind("<KeyRelease>", actualizar_clientes)
+    ventana.after(100, actualizar_clientes)
 
     pag_configuracion = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_configuracion, text="Configuración", font=("Akt", 30, "bold")).pack(pady=20)
@@ -75,8 +309,199 @@ def abrir_panel():
    
    
     # ================= pagina de vehiculos =================
+
+    # ================= STOCK =================
+
+    pag_stock = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    ctk.CTkLabel(
+    pag_stock,
+    text="Stock de Vehículos",
+    font=("Akt", 34, "bold"),
+    text_color="white"
+    ).pack(anchor="w", padx=25, pady=(25, 5))
+
+    ctk.CTkLabel(
+    pag_stock,
+    text="Inventario completo de vehículos",
+    font=("Akt", 16),
+    text_color="#AAAAAA"
+    ).pack(anchor="w", padx=25, pady=(0, 25))
+
+    stock_resumen = ctk.CTkFrame(pag_stock, fg_color="transparent")
+    stock_resumen.pack(fill="x", padx=25, pady=(0, 25))
+
+    stock_cards_frame = ctk.CTkFrame(
+    pag_stock,
+    fg_color="#171717",
+    border_color="#4E0000",
+    border_width=1,
+    corner_radius=12
+    )
+    stock_cards_frame.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    buscador_stock = ctk.CTkEntry(
+    stock_cards_frame,
+    placeholder_text="Buscar por marca o modelo...",
+    height=42,
+    fg_color="#141414",
+    border_color="#4E0000",
+    border_width=1,
+    corner_radius=10
+    )
+    buscador_stock.pack(fill="x", padx=25, pady=(25, 15))
+
+    vehiculos_grid = ctk.CTkFrame(stock_cards_frame, fg_color="transparent")
+    vehiculos_grid.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    def crear_resumen_stock(titulo, valor, color):
+        card = ctk.CTkFrame(
+            stock_resumen,
+            fg_color="#171717",
+            border_color="#4E0000",
+            border_width=1,
+            corner_radius=10,
+            height=105
+        )
+        card.pack(side="left", fill="x", expand=True, padx=8)
+        card.pack_propagate(False)
+
+        ctk.CTkLabel(card, text=titulo, font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w", padx=20, pady=(18, 4))
+        ctk.CTkLabel(card, text=str(valor), font=("Akt", 28), text_color=color).pack(anchor="w", padx=20)
+
+    def actualizar_stock(event=None):
+        for widget in stock_resumen.winfo_children():
+            widget.destroy()
+
+        for widget in vehiculos_grid.winfo_children():
+            widget.destroy()
+
+        filtro = buscador_stock.get().lower()
+
+        vehiculos_filtrados = []
+        for vehiculo in vehiculos_data:
+            marca = vehiculo[0]
+            modelo = vehiculo[1]
+            if filtro in marca.lower() or filtro in modelo.lower():
+                vehiculos_filtrados.append(vehiculo)
+
+        crear_resumen_stock("Total Vehículos", len(vehiculos_data), "white")
+        crear_resumen_stock("Disponibles", len(vehiculos_data), "#00D46A")
+        crear_resumen_stock("Reservados", 0, "#FFB000")
+        crear_resumen_stock("Vendidos", 0, "#FF4D5E")
+
+        for i in range(3):
+            vehiculos_grid.grid_columnconfigure(i, weight=1)
+
+        for index, vehiculo in enumerate(vehiculos_filtrados):
+            marca, modelo, anio, precio, tipo, color, km, motor, transmision, combustible, dominio, vin, descripcion = vehiculo
+
+            card = ctk.CTkFrame(
+                vehiculos_grid,
+                fg_color="#242424",
+                border_color="#4E0000",
+                border_width=1,
+                corner_radius=10
+            )
+            card.grid(row=index // 3, column=index % 3, padx=12, pady=12, sticky="nsew")
+
+            header = ctk.CTkFrame(card, fg_color="transparent")
+            header.pack(fill="x", padx=16, pady=(15, 5))
+
+            ctk.CTkLabel(
+                header,
+                text=f"{marca} {modelo}",
+                font=("Akt", 18, "bold"),
+                text_color="white"
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                header,
+                text="Disponible",
+                font=("Akt", 12),
+                text_color="#00D46A",
+                fg_color="#133B24",
+                corner_radius=6,
+                padx=10,
+                pady=4
+            ).pack(side="right")
+
+            ctk.CTkLabel(card, text=f"Año {anio}", font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w", padx=16)
+
+            datos = [
+                ("Tipo:", tipo),
+                ("Color:", color),
+                ("Kilometraje:", f"{km} km"),
+                ("Precio:", f"${precio}")
+            ]
+
+            for etiqueta, valor in datos:
+                fila = ctk.CTkFrame(card, fg_color="transparent")
+                fila.pack(fill="x", padx=16, pady=3)
+
+                ctk.CTkLabel(fila, text=etiqueta, font=("Akt", 14), text_color="#AAAAAA").pack(side="left")
+                ctk.CTkLabel(
+                    fila,
+                    text=valor,
+                    font=("Akt", 14),
+                    text_color="#E02020" if etiqueta == "Precio:" else "white"
+                ).pack(side="right")
+
+            botones = ctk.CTkFrame(card, fg_color="transparent")
+            botones.pack(fill="x", padx=16, pady=(12, 16))
+
+            ctk.CTkButton(
+                botones,
+                text="Ver",
+                height=36,
+                fg_color="#E02020",
+                hover_color="#B00000",
+                font=("Akt", 14, "bold")
+            ).pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+            ctk.CTkButton(
+                botones,
+                text="Eliminar",
+                width=90,
+                height=36,
+                fg_color="#4A1E1E",
+                hover_color="#7A2525",
+                font=("Akt", 13, "bold"),
+                command=lambda v=vehiculo: eliminar_vehiculo_stock(v)
+            ).pack(side="right")
+
+    def eliminar_vehiculo_stock(vehiculo):
+        if messagebox.askyesno("Eliminar vehículo", "¿Querés eliminar este vehículo del stock?"):
+            vehiculos_data.remove(vehiculo)
+            actualizar_stock()
+
+    buscador_stock.bind("<KeyRelease>", actualizar_stock)
+    ventana.after(100, actualizar_stock)
     # ================= NUEVO VEHICULO =================
-    vehiculos_data = []
+    vehiculos_data = [
+    (
+        "Toyota", "Corolla", "2024", "28500",
+        "Sedan", "Blanco", "0", "2.0L",
+        "Automatica", "Nafta",
+        "AB123CD", "JTDBR32E530123456",
+        "Unidad nueva, lista para entrega inmediata."
+    ),
+    (
+        "Honda", "CR-V", "2024", "35200",
+        "SUV", "Negro", "0", "1.5L Turbo",
+        "Automatica", "Nafta",
+        "AC456EF", "2HKRW2H85RH654321",
+        "SUV familiar con excelente equipamiento."
+    ),
+    (
+        "Ford", "Ranger", "2023", "42000",
+        "Pickup", "Gris", "15000", "3.2L Diesel",
+        "Automatica", "Diesel",
+        "AD789GH", "8AFAR23L4PJ987654",
+        "Camioneta usada en muy buen estado."
+    )
+    ]
+    
 
     pag_nuevo_vehiculo = ctk.CTkScrollableFrame(main_content, fg_color="#1E1E1E")
 
@@ -226,8 +651,10 @@ def abrir_panel():
             return
 
         vehiculos_data.append(datos)
+        actualizar_stock()
         limpiar_campos_vehiculo()
         messagebox.showinfo("Vehiculo Registrado", "El vehiculo fue registrado correctamente")
+        mostrar_contenido("Stock", btn_stock)
 
     frame_btn_vehiculo = ctk.CTkFrame(frame_form_vehiculo, fg_color="transparent")
     frame_btn_vehiculo.grid(row=17, column=0, columnspan=2, padx=25, pady=(5, 30), sticky="ew")
@@ -716,7 +1143,6 @@ def abrir_panel():
         "Gastos": pag_gastos,
         "Stock": pag_stock,
         "clientes": pag_clientes,
-        "Reportes": pag_reportes,
         "Nuevo Empleado": pag_nuevo_empleado,
         "Configuracion": pag_configuracion
     }
@@ -756,9 +1182,6 @@ def abrir_panel():
 
     btn_clientes = ctk.CTkButton(sidebar_frame, text="Clientes", height=30, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("clientes", btn_clientes))
     btn_clientes.grid(row=6, column=0, padx=20, pady=3, sticky="ew")
-
-    btn_reportes = ctk.CTkButton(sidebar_frame, text="Reportes", height=30, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("Reportes", btn_reportes))
-    btn_reportes.grid(row=7, column=0, padx=20, pady=3, sticky="ew")
 
     btn_empleados = ctk.CTkButton(sidebar_frame, text="Empleados", height=30, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("Empleados", btn_empleados))
     btn_empleados.grid(row=8, column=0, padx=20, pady=3, sticky="ew")
