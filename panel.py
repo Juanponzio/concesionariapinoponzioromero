@@ -1,7 +1,14 @@
 import customtkinter as ctk
 from PIL import Image
 from tkinter import messagebox, ttk
+# --- ESTO VA JUSTO ACÁ ABAJO, EN ESTE ORDEN EXACTO ---
+import numpy as np
+import matplotlib
+matplotlib.use("TkAgg")  # <-- Obliga a matplotlib a usar el motor de Tkinter
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+    
 def abrir_panel():
     ventana = ctk.CTkToplevel()
     ventana.title("Sistema de Gestión - Concesionaria")
@@ -44,17 +51,508 @@ def abrir_panel():
     titulo_bienvenida.place(relx=0.4, rely=0.02)
 
     # Crear las páginas
-    pag_estadisticas = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_estadisticas, text="Panel de estadisticas", font=("Akt", 30, "bold")).pack(pady=20)
-
-    pag_ingresos = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_ingresos, text="Gestion de Ingresos", font=("Akt", 30, "bold")).pack(pady=20)
-
-    pag_gastos = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
-    ctk.CTkLabel(pag_gastos, text="Gestión de Gastos", font=("Akt", 30, "bold")).pack(pady=20)
+    
+    
 
     pag_stock = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_stock, text="Gestión de Stock", font=("Akt", 30, "bold")).pack(pady=20)
+
+
+
+
+
+
+
+
+
+
+# =========================================================================
+    # ============================= ESTADÍSTICAS ==============================
+    # =========================================================================
+
+    # Definimos pag_estadisticas como un scrollable frame
+    pag_estadisticas = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    # Títulos superiores de la sección
+    ctk.CTkLabel(pag_estadisticas, text="Estadísticas", font=("Akt", 34, "bold"), text_color="white").pack(anchor="w", padx=25, pady=(25, 5))
+    ctk.CTkLabel(pag_estadisticas, text="Análisis de rendimiento, balances y control de stock", font=("Akt", 16), text_color="#AAAAAA").pack(anchor="w", padx=25, pady=(0, 25))
+
+    # --- FUNCIÓN REUTILIZABLE PARA CREAR TARJETAS EN ESTADÍSTICAS ---
+    def crear_tarjeta_dashboard(parent, titulo, valor, ssubtitulo, color_subtitulo, icono_texto, color_icono, side="left", row_index=None, col_index=None, grid_mode=False):
+        card = ctk.CTkFrame(parent, fg_color="#171717", border_color="#4E0000", border_width=1, corner_radius=12, height=130)
+        
+        if grid_mode:
+            card.grid(row=row_index, column=col_index, padx=8, pady=8, sticky="nsew")
+        else:
+            card.pack(side=side, fill="x", expand=True, padx=8)
+            
+        card.pack_propagate(False)
+
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(side="left", fill="both", expand=True, padx=(20, 10), pady=15)
+
+        ctk.CTkLabel(info_frame, text=titulo, font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=valor, font=("Akt", 26, "bold"), text_color="white").pack(anchor="w", pady=(2, 2))
+        ctk.CTkLabel(info_frame, text=ssubtitulo, font=("Akt", 12), text_color=color_subtitulo).pack(anchor="w")
+
+        ctk.CTkLabel(card, text=icono_texto, font=("Akt", 22), text_color=color_icono).pack(side="right", padx=25, pady=25, anchor="n")
+
+    # --- 1. FILA SUPERIOR: CUATRO TARJETAS DE MÉTRICAS MÁSTER ---
+    fila_superior_metrics = ctk.CTkFrame(pag_estadisticas, fg_color="transparent")
+    fila_superior_metrics.pack(fill="x", padx=25, pady=(0, 20))
+
+    crear_tarjeta_dashboard(fila_superior_metrics, "Ingresos del Mes", "$580.000", "+12.5% vs mes anterior", "#00D46A", "$", "#E02020")
+    crear_tarjeta_dashboard(fila_superior_metrics, "Gastos del Mes", "$205.000", "+3.2% vs mes anterior", "#E02020", "📉", "#E02020")
+    crear_tarjeta_dashboard(fila_superior_metrics, "Vehículos en Stock", "65", "5 vendidos esta semana", "#00D46A", "🚗", "#E02020")
+    crear_tarjeta_dashboard(fila_superior_metrics, "Clientes Activos", "342", "+28 este mes", "#00D46A", "👥", "#E02020")
+
+    # --- 2. SECCIÓN CENTRAL: CONTENEDOR GRID DIVIDIDO PARA LOS DOS GRÁFICOS ---
+    section_graficos = ctk.CTkFrame(pag_estadisticas, fg_color="transparent")
+    section_graficos.pack(fill="x", padx=25, pady=(0, 20))
+    section_graficos.grid_columnconfigure(0, weight=6, uniform="grupo_graficos")
+    section_graficos.grid_columnconfigure(1, weight=4, uniform="grupo_graficos")
+
+    # --- GRÁFICO IZQUIERDO: INGRESOS VS GASTOS (BARRAS DOBLES COMPUESTAS) ---
+    bar_card = ctk.CTkFrame(section_graficos, fg_color="#171717", border_color="#4E0000", border_width=1, corner_radius=12)
+    bar_card.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
+
+    ctk.CTkLabel(bar_card, text="Historial de Ingresos vs Gastos", font=("Akt", 18, "bold"), text_color="white").pack(anchor="w", padx=25, pady=(15, 5))
+    ctk.CTkLabel(bar_card, text="Comparativa semestral del balance comercial", font=("Akt", 12), text_color="#AAAAAA").pack(anchor="w", padx=25, pady=(0, 10))
+
+    # Creamos la figura y forzamos explícitamente que no tenga márgenes blancos externos
+    fig1, ax1 = plt.subplots(figsize=(6, 3.8), facecolor="#171717")
+    ax1.set_facecolor("#171717")
+
+    meses_grafico = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"]
+    ingresos_vals = [450000, 520000, 480000, 600000, 620000, 590000]
+    gastos_vals = [180000, 190000, 175000, 210000, 195000, 205000]
+
+    x_indices = np.arange(len(meses_grafico))
+    width_bar = 0.35
+
+    ax1.bar(x_indices - width_bar/2, ingresos_vals, width_bar, label="Ingresos", color="#E02020")
+    ax1.bar(x_indices + width_bar/2, gastos_vals, width_bar, label="Gastos", color="#4A1E1E")
+
+    ax1.legend(facecolor="#171717", edgecolor="#4E0000", labelcolor="white", loc="upper left")
+    ax1.set_xticks(x_indices)
+    ax1.set_xticklabels(meses_grafico)
+    ax1.spines["bottom"].set_color("#4E0000")
+    ax1.spines["left"].set_color("#4E0000")
+    ax1.spines["top"].set_visible(False)
+    ax1.spines["right"].set_visible(False)
+    ax1.tick_params(colors="#AAAAAA", labelsize=10)
+    ax1.grid(True, linestyle="--", alpha=0.08, color="white")
+    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: f"${int(x/1000)}k"))
+
+    # ESTO SOLUCIONA EL RECORTE: Ajusta los elementos automáticamente dentro de la tarjeta
+    fig1.tight_layout()
+
+    canvas1 = FigureCanvasTkAgg(fig1, master=bar_card)
+    canvas1.draw()
+    canvas1.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=(0, 15))
+    plt.close(fig1)
+
+    # --- GRÁFICO DERECHO: DISTRIBUCIÓN DE STOCK (TORTA) ---
+    pie_card = ctk.CTkFrame(section_graficos, fg_color="#171717", border_color="#4E0000", border_width=1, corner_radius=12)
+    pie_card.grid(row=0, column=1, padx=(10, 0), sticky="nsew")
+
+    ctk.CTkLabel(pie_card, text="Distribución de Stock", font=("Akt", 18, "bold"), text_color="white").pack(anchor="w", padx=25, pady=(15, 5))
+    ctk.CTkLabel(pie_card, text="Modelos disponibles en concesionaria", font=("Akt", 12), text_color="#AAAAAA").pack(anchor="w", padx=25, pady=(0, 10))
+
+    fig2, ax2 = plt.subplots(figsize=(4, 3.8), facecolor="#171717")
+    ax2.set_facecolor("#171717")
+
+    categorias_stock = ["Sedán", "SUV", "Deportivo", "Camioneta"]
+    cantidades_stock = [24, 18, 8, 15]
+    colores_pie = ["#E02020", "#B01515", "#7A0F0F", "#4A0808"]
+
+    wedges, texts, autotexts = ax2.pie(
+        cantidades_stock, 
+        labels=categorias_stock, 
+        colors=colores_pie, 
+        autopct='%1.0f%%', 
+        startangle=90, 
+        textprops=dict(color="#AAAAAA", fontsize=10),
+        wedgeprops=dict(edgecolor="#171717", linewidth=2)
+    )
+
+    for autotext in autotexts:
+        autotext.set_color('white')
+        autotext.set_weight('bold')
+
+    # También ajustamos de manera compacta el gráfico de torta
+    fig2.tight_layout()
+
+    canvas2 = FigureCanvasTkAgg(fig2, master=pie_card)
+    canvas2.draw()
+    canvas2.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=(0, 15))
+    plt.close(fig2)
+
+    # --- 3. FILA INFERIOR: TRES TARJETAS DE RESUMEN FINAL ---
+    fila_inferior_metrics = ctk.CTkFrame(pag_estadisticas, fg_color="transparent")
+    fila_inferior_metrics.pack(fill="x", padx=25, pady=(0, 25))
+    
+    for i in range(3):
+        fila_inferior_metrics.grid_columnconfigure(i, weight=1)
+
+    crear_tarjeta_dashboard(fila_inferior_metrics, "Empleados registrados", "24", "Personal bajo nómina", "#AAAAAA", "👥", "#E02020", row_index=0, col_index=0, grid_mode=True)
+    crear_tarjeta_dashboard(fila_inferior_metrics, "Ventas concretadas", "18", "Vehículos entregados este mes", "#AAAAAA", "🛒", "#E02020", row_index=0, col_index=1, grid_mode=True)
+    crear_tarjeta_dashboard(fila_inferior_metrics, "Ganancia Neta", "$375.000", "Rentabilidad limpia del período", "#00D46A", "💰", "#E02020", row_index=0, col_index=2, grid_mode=True)
+
+
+
+
+
+
+
+
+
+# =========================================================================
+    # =============================== INGRESOS ================================
+    # =========================================================================
+    
+    # Datos simulados (en el futuro vendrán de tu Base de Datos)
+    ingresos_data = [
+        ("2026-04-20", "Venta Toyota Corolla 2024", "Venta", "+$28.500"),
+        ("2026-04-19", "Servicio de Mantenimiento", "Servicio", "+$450"),
+        ("2026-04-18", "Venta Honda CR-V 2024", "Venta", "+$35.200"),
+        ("2026-04-17", "Venta de Repuestos", "Repuestos", "+$1.200"),
+        ("2026-04-16", "Venta Ford Ranger 2023", "Venta", "+$42.000"),
+        ("2026-04-15", "Financiamiento - Comisión", "Financiamiento", "+$3.500"),
+        ("2026-04-14", "Venta Chevrolet Onix 2024", "Venta", "+$18.900"),
+    ]
+
+    # Redefinimos pag_ingresos como un frame con scrollbar para asegurar responsividad
+    pag_ingresos = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    # Títulos principales de la sección
+    ctk.CTkLabel(
+        pag_ingresos,
+        text="Ingresos",
+        font=("Akt", 34, "bold"),
+        text_color="white"
+    ).pack(anchor="w", padx=25, pady=(25, 5))
+
+    ctk.CTkLabel(
+        pag_ingresos,
+        text="Gestión de ingresos y ventas",
+        font=("Akt", 16),
+        text_color="#AAAAAA"
+    ).pack(anchor="w", padx=25, pady=(0, 25))
+
+    # --- CONTENEDOR DE TARJETAS (Métricas Superiores) ---
+    ingresos_resumen = ctk.CTkFrame(pag_ingresos, fg_color="transparent")
+    ingresos_resumen.pack(fill="x", padx=25, pady=(0, 25))
+
+    def crear_tarjeta_ingreso(parent, titulo, valor, ssubtitulo, color_valor, icono_texto, color_icono):
+        card = ctk.CTkFrame(
+            parent,
+            fg_color="#171717",
+            border_color="#4E0000",
+            border_width=1,
+            corner_radius=12,
+            height=140
+        )
+        card.pack(side="left", fill="x", expand=True, padx=8)
+        card.pack_propagate(False)
+
+        # Contenedor interno para alinear textos a la izquierda e icono a la derecha
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(side="left", fill="both", expand=True, padx=(20, 10), pady=15)
+
+        ctk.CTkLabel(info_frame, text=titulo, font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=valor, font=("Akt", 28, "bold"), text_color="white").pack(anchor="w", pady=(5, 2))
+        ctk.CTkLabel(info_frame, text=ssubtitulo, font=("Akt", 12), text_color=color_valor).pack(anchor="w")
+
+        # Icono simulado en texto plano respetando el color del diseño original
+        ctk.CTkLabel(card, text=icono_texto, font=("Akt", 24), text_color=color_icono).pack(side="right", padx=25, pady=25, anchor="n")
+
+    # Generamos las 3 tarjetas de indicadores superiores
+    crear_tarjeta_ingreso(ingresos_resumen, "Total Ingresos", "$129.750", "+15.3% vs semana anterior", "#00D46A", "$", "#E02020")
+    crear_tarjeta_ingreso(ingresos_resumen, "Promedio por Ingreso", "$18.536", "Últimos 7 días", "#AAAAAA", "📈", "#E02020")
+    crear_tarjeta_ingreso(ingresos_resumen, "Transacciones", "7", "Esta semana", "#AAAAAA", "🏷️", "#E02020")
+
+    # --- CONTENEDOR PRINCIPAL DE LA TABLA ---
+    tabla_cards_frame = ctk.CTkFrame(
+        pag_ingresos,
+        fg_color="#171717",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=12
+    )
+    tabla_cards_frame.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Buscador integrado dentro del frame de la tabla
+    buscador_ingresos = ctk.CTkEntry(
+        tabla_cards_frame,
+        placeholder_text="Buscar por concepto...",
+        height=42,
+        fg_color="#141414",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=10
+    )
+    buscador_ingresos.pack(fill="x", padx=25, pady=(25, 15))
+
+    # Contenedor exclusivo para Treeview
+    tabla_ingresos_container = ctk.CTkFrame(tabla_cards_frame, fg_color="transparent")
+    tabla_ingresos_container.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Configuración de estilos para el Treeview (Se adapta a la paleta oscura de la app)
+    style_ingresos = ttk.Style()
+    style_ingresos.configure(
+        "ingresos.Treeview",
+        background="#141414",
+        foreground="white",
+        fieldbackground="#141414",
+        rowheight=45,
+        font=("Akt", 13)
+    )
+    style_ingresos.configure(
+        "ingresos.Treeview.Heading",
+        background="#171717",
+        foreground="#AAAAAA",
+        relief="flat",
+        font=("Akt", 14, "bold")
+    )
+    style_ingresos.map("ingresos.Treeview", background=[("selected", "#4E0000")])
+
+    columnas_ingresos = ("Fecha", "Concepto", "Categoría", "Monto")
+    tabla_ingresos = ttk.Treeview(
+        tabla_ingresos_container,
+        columns=columnas_ingresos,
+        show="headings",
+        style="ingresos.Treeview",
+        height=10
+    )
+
+    for col in columnas_ingresos:
+        tabla_ingresos.heading(col, text=col)
+        # Alineación izquierda para Concepto, centro para el resto como en tu captura
+        if col == "Concepto":
+            tabla_ingresos.column(col, anchor="w", width=350)
+        else:
+            tabla_ingresos.column(col, anchor="center", width=150)
+
+    tabla_ingresos.pack(fill="both", expand=True)
+
+    # Función encargada de renderizar y aplicar filtros sobre la tabla
+    def actualizar_tabla_ingresos(event=None):
+        for item in tabla_ingresos.get_children():
+            tabla_ingresos.delete(item)
+            
+        filtro = buscador_ingresos.get().lower()
+        
+        for ingreso in ingresos_data:
+            fecha, concepto, categoria, monto = ingreso
+            if filtro in concepto.lower() or filtro in categoria.lower():
+                tabla_ingresos.insert("", "end", values=(fecha, concepto, categoria, monto))
+
+    # Evento de teclado para búsquedas interactivas en tiempo real
+    buscador_ingresos.bind("<KeyRelease>", actualizar_tabla_ingresos)
+    
+    # Carga inicial de datos
+    ventana.after(100, actualizar_tabla_ingresos)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =========================================================================
+    # =============================== GASTOS ================================
+    # =========================================================================
+    
+    # Datos simulados (en el futuro vendrán de tu Base de Datos)
+    gastos_data = [
+        ("2026-04-22", "Salario del personales", "Salarios", "-$85.500"),
+        ("2026-04-16", "Compra de repuestos", "Inventario", "-$12.000"),
+        ("2026-04-10", "Servicios publicos", "Servicios", "-$3.200"),
+        ("2026-04-7", "Mantenimiento de instalaciones", "Mantenimiento", "-6.000"),
+        ("2026-04-6", "Venta Ford Ranger 2023", "Venta", "+$42.000"),
+        ("2026-04-3", "Marketing y Publicidad", "Marketing", "+$8.500"),
+        ]
+
+    # Redefinimos pag_ingresos como un frame con scrollbar para asegurar responsividad
+    pag_gastos = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    # Títulos principales de la sección
+    ctk.CTkLabel(
+        pag_gastos,
+        text="Gastos",
+        font=("Akt", 34, "bold"),
+        text_color="white"
+    ).pack(anchor="w", padx=25, pady=(25, 5))
+
+    ctk.CTkLabel(
+        pag_gastos,
+        text="Control de egresos y costos operativos",
+        font=("Akt", 16),
+        text_color="#AAAAAA"
+    ).pack(anchor="w", padx=25, pady=(0, 25))
+
+    # --- CONTENEDOR DE TARJETAS (Métricas Superiores) ---
+    gastos_resumen = ctk.CTkFrame(pag_gastos, fg_color="transparent")
+    gastos_resumen.pack(fill="x", padx=25, pady=(0, 25))
+
+    def crear_tarjeta_gasto(parent, titulo, valor, ssubtitulo, color_valor, icono_texto, color_icono):
+        card = ctk.CTkFrame(
+            parent,
+            fg_color="#171717",
+            border_color="#4E0000",
+            border_width=1,
+            corner_radius=12,
+            height=140
+        )
+        card.pack(side="left", fill="x", expand=True, padx=8)
+        card.pack_propagate(False)
+
+        # Contenedor interno para alinear textos a la izquierda e icono a la derecha
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(side="left", fill="both", expand=True, padx=(20, 10), pady=15)
+
+        ctk.CTkLabel(info_frame, text=titulo, font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=valor, font=("Akt", 28, "bold"), text_color="white").pack(anchor="w", pady=(5, 2))
+        ctk.CTkLabel(info_frame, text=ssubtitulo, font=("Akt", 12), text_color=color_valor).pack(anchor="w")
+
+        # Icono simulado en texto plano respetando el color del diseño original
+        ctk.CTkLabel(card, text=icono_texto, font=("Akt", 24), text_color=color_icono).pack(side="right", padx=25, pady=25, anchor="n")
+
+    # Generamos las 3 tarjetas de indicadores superiores
+    crear_tarjeta_gasto(gastos_resumen, "Total Gastos", "$309.750", "+8% vs semana anterior", "#E02020", "$", "#E02020")
+    crear_tarjeta_gasto(gastos_resumen, "Promedio por Gasto", "$43.536", "Últimos 7 días", "#AAAAAA", "📈", "#E02020")
+    crear_tarjeta_gasto(gastos_resumen, "Transacciones", "7", "Esta semana", "#AAAAAA", "🏷️", "#E02020")
+
+    # --- CONTENEDOR PRINCIPAL DE LA TABLA ---
+    tabla_cards_frame = ctk.CTkFrame(
+        pag_gastos,
+        fg_color="#171717",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=12
+    )
+    tabla_cards_frame.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Buscador integrado dentro del frame de la tabla
+    buscador_gastos = ctk.CTkEntry(
+        tabla_cards_frame,
+        placeholder_text="Buscar por concepto...",
+        height=42,
+        fg_color="#141414",
+        border_color="#4E0000",
+        border_width=1,
+        corner_radius=10
+    )
+    buscador_gastos.pack(fill="x", padx=25, pady=(25, 15))
+
+    # Contenedor exclusivo para Treeview
+    tabla_gastos_container = ctk.CTkFrame(tabla_cards_frame, fg_color="transparent")
+    tabla_gastos_container.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Configuración de estilos para el Treeview (Se adapta a la paleta oscura de la app)
+    style_gastos = ttk.Style()
+    style_gastos.configure(
+        "gastos.Treeview",
+        background="#141414",
+        foreground="white",
+        fieldbackground="#141414",
+        rowheight=45,
+        font=("Akt", 13)
+    )
+    style_gastos.configure(
+        "gastos.Treeview.Heading",
+        background="#171717",
+        foreground="#AAAAAA",
+        relief="flat",
+        font=("Akt", 14, "bold")
+    )
+    style_gastos.map("gastos.Treeview", background=[("selected", "#4E0000")])
+
+    columnas_gastos = ("Fecha", "Concepto", "Categoría", "Monto")
+    tabla_gastos = ttk.Treeview(
+        tabla_gastos_container,
+        columns=columnas_gastos,
+        show="headings",
+        style="gastos.Treeview",
+        height=10
+    )
+
+    for col in columnas_gastos:
+        tabla_gastos.heading(col, text=col)
+        # Alineación izquierda para Concepto, centro para el resto como en tu captura
+        if col == "Concepto":
+            tabla_gastos.column(col, anchor="w", width=350)
+        else:
+            tabla_gastos.column(col, anchor="center", width=150)
+
+    tabla_gastos.pack(fill="both", expand=True)
+
+    # Función encargada de renderizar y aplicar filtros sobre la tabla
+    def actualizar_tabla_gastos(event=None):
+        for item in tabla_gastos.get_children():
+            tabla_gastos.delete(item)
+            
+        filtro = buscador_gastos.get().lower()
+        
+        for gasto in gastos_data:
+            fecha, concepto, categoria, monto = gasto
+            if filtro in concepto.lower() or filtro in categoria.lower():
+                tabla_gastos.insert("", "end", values=(fecha, concepto, categoria, monto))
+
+    # Evento de teclado para búsquedas interactivas en tiempo real
+    buscador_gastos.bind("<KeyRelease>", actualizar_tabla_gastos)
+    
+    # Carga inicial de datos
+    ventana.after(100, actualizar_tabla_gastos)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    pag_clientes = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
+    ctk.CTkLabel(pag_clientes, text="Gestión de Clientes", font=("Akt", 30, "bold")).pack(pady=20)
 
     # ================= CLIENTES =================
     clientes_data = [
@@ -80,6 +578,8 @@ def abrir_panel():
         text_color="#AAAAAA"
     ).pack(anchor="w", padx=25, pady=(0, 25))
 
+    pag_reportes = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
+    ctk.CTkLabel(pag_reportes, text="Reportes", font=("Akt", 30, "bold")).pack(pady=20)
     clientes_resumen = ctk.CTkFrame(pag_clientes, fg_color="transparent")
     clientes_resumen.pack(fill="x", padx=25, pady=(0, 25))
 
@@ -299,15 +799,26 @@ def abrir_panel():
     pag_configuracion = ctk.CTkFrame(main_content, fg_color="#1E1E1E")
     ctk.CTkLabel(pag_configuracion, text="Configuración", font=("Akt", 30, "bold")).pack(pady=20)
 
-   
-   
-   
-   
-   
 
-   
-   
-   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # ================= pagina de vehiculos =================
 
     # ================= STOCK =================
@@ -477,7 +988,27 @@ def abrir_panel():
 
     buscador_stock.bind("<KeyRelease>", actualizar_stock)
     ventana.after(100, actualizar_stock)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # ================= NUEVO VEHICULO =================
+    vehiculos_data = []
     vehiculos_data = [
     (
         "Toyota", "Corolla", "2024", "28500",
@@ -680,6 +1211,18 @@ def abrir_panel():
         font=("Akt", 16, "bold"),
         command=limpiar_campos_vehiculo
     ).grid(row=0, column=1, sticky="e")
+
+
+
+
+
+
+
+
+
+
+
+
     # ================= EMPLEADOS =================
     empleados_data = [
         ("Carlos", "Zalcas", "12345678", "1978-04-12", "Casado", "+54 11 1234-5678", "carlos@zalcas.com", "Buenos Aires", "Av. Siempre Viva 123", "Gerente General", "Administración", "2020-01-15", "$120.000", "Tiempo Completo", "carlos@zalcas.com", "+54 11 8765-4321"),
@@ -1100,6 +1643,195 @@ def abrir_panel():
         cargar_empleados()
         limpiar_formulario_empleado()
 
+
+
+
+
+
+
+# =========================================================================
+    # ============================ CONFIGURACIÓN ==============================
+    # =========================================================================
+
+    # Redefinimos pag_config como un scrollable frame para asegurar compatibilidad
+    pag_config = ctk.CTkScrollableFrame(main_content, fg_color="#0B0B0B")
+
+    # Títulos superiores de la sección
+    ctk.CTkLabel(pag_config, text="Configuración", font=("Akt", 34, "bold"), text_color="white").pack(anchor="w", padx=25, pady=(25, 5))
+    ctk.CTkLabel(pag_config, text="Administración integral del sistema y parámetros del establecimiento", font=("Akt", 16), text_color="#AAAAAA").pack(anchor="w", padx=25, pady=(0, 20))
+
+    # --- BARRA DE NAVEGACIÓN INTERNA (SUBMENÚ DE BOTONES) ---
+    nav_config_frame = ctk.CTkFrame(pag_config, fg_color="transparent")
+    nav_config_frame.pack(fill="x", padx=25, pady=(0, 20))
+
+    # --- CONTENEDOR PRINCIPAL PARA LAS PÁGINAS ---
+    # Aquí es donde se van a montar las tarjetas ocupando todo el ancho posible
+    container_paginas = ctk.CTkFrame(pag_config, fg_color="transparent")
+    container_paginas.pack(fill="both", expand=True, padx=25, pady=(0, 25))
+
+    # Declaramos los contenedores de las sub-páginas (pero no los empaquetamos todavía)
+    sub_pag_horarios = ctk.CTkFrame(container_paginas, fg_color="#171717", border_color="#4E0000", border_width=1, corner_radius=12)
+    sub_pag_db = ctk.CTkFrame(container_paginas, fg_color="#171717", border_color="#4E0000", border_width=1, corner_radius=12)
+
+    # --- FUNCIÓN NAVEGADORA DE PESTAÑAS INTERNAS ---
+    def cambiar_pestana_config(pestana_destino, boton_activo):
+        # 1. Ocultamos las dos sub-páginas para limpiar la pantalla
+        sub_pag_horarios.pack_forget()
+        sub_pag_db.pack_forget()
+        
+        # 2. Reseteamos el diseño visual de ambos botones a su estado normal (transparente)
+        btn_nav_horarios.configure(fg_color="transparent", text_color="#AAAAAA", border_width=0)
+        btn_nav_db.configure(fg_color="transparent", text_color="#AAAAAA", border_width=0)
+        
+        # 3. Mostramos la página seleccionada expandiéndose en toda la pantalla disponible
+        pestana_destino.pack(fill="both", expand=True)
+        
+        # 4. Destacamos visualmente el botón que acabamos de tocar con color rojo vivo
+        boton_activo.configure(fg_color="#E02020", text_color="white", border_width=0)
+
+    # Creamos los botones de navegación interna
+    btn_nav_horarios = ctk.CTkButton(nav_config_frame, text="Horarios de Atención", font=("Akt", 15, "bold"), height=35, width=180, corner_radius=8, command=lambda: cambiar_pestana_config(sub_pag_horarios, btn_nav_horarios))
+    btn_nav_horarios.pack(side="left", padx=(0, 10))
+
+    btn_nav_db = ctk.CTkButton(nav_config_frame, text="Base de Datos", font=("Akt", 15, "bold"), height=35, width=180, corner_radius=8, command=lambda: cambiar_pestana_config(sub_pag_db, btn_nav_db))
+    btn_nav_db.pack(side="left", padx=10)
+
+# =========================================================================
+    # PESTAÑA 1: HORARIOS DE ATENCIÓN
+    # =========================================================================
+    ctk.CTkLabel(sub_pag_horarios, text="Horarios de Atención", font=("Akt", 22, "bold"), text_color="white").pack(anchor="w", padx=30, pady=(25, 5))
+    ctk.CTkLabel(sub_pag_horarios, text="Establecer las jornadas laborales del establecimiento", font=("Akt", 13), text_color="#AAAAAA").pack(anchor="w", padx=30, pady=(0, 20))
+
+    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    
+    # Lista para guardar todas las cajas de texto y poder bloquearlas juntas
+    lista_entries_horarios = []
+
+    for dia in dias_semana:
+        dia_row = ctk.CTkFrame(sub_pag_horarios, fg_color="transparent")
+        dia_row.pack(fill="x", padx=30, pady=6)
+
+        ctk.CTkLabel(dia_row, text=dia, font=("Akt", 15, "bold"), text_color="white", width=120, anchor="w").pack(side="left")
+
+        entry_apertura = ctk.CTkEntry(dia_row, placeholder_text="09:00", width=90, height=34, fg_color="#0B0B0B", border_color="#4E0000", text_color="white", justify="center")
+        entry_apertura.pack(side="left", padx=15)
+
+        ctk.CTkLabel(dia_row, text="a", font=("Akt", 14), text_color="#AAAAAA").pack(side="left")
+
+        entry_cierre = ctk.CTkEntry(dia_row, placeholder_text="19:00", width=90, height=34, fg_color="#0B0B0B", border_color="#4E0000", text_color="white", justify="center")
+        entry_cierre.pack(side="left", padx=15)
+
+        if dia == "Domingo":
+            entry_apertura.configure(placeholder_text="Cerrado")
+            entry_cierre.configure(placeholder_text="Cerrado")
+        elif dia == "Sábado":
+            entry_cierre.configure(placeholder_text="13:00")
+
+        # Guardamos las entradas en la lista
+        lista_entries_horarios.extend([entry_apertura, entry_cierre])
+
+    # Función interna que se ejecuta al clickear el botón
+    def bloquear_cronograma():
+        for entry in lista_entries_horarios:
+            entry.configure(state="disabled", text_color="#666666") # Los bloquea y pone el texto gris sutil
+        btn_guardar_horarios.configure(text="🔒 Cronograma Guardado", fg_color="#2B2B2B", state="disabled")
+        messagebox.showinfo("Configuración", "El cronograma laboral fue guardado y bloqueado con éxito.")
+
+    # Botón configurado para llamar a la función de bloqueo
+    btn_guardar_horarios = ctk.CTkButton(sub_pag_horarios, text="Guardar Cronograma Laboral", font=("Akt", 14, "bold"), fg_color="#E02020", hover_color="#920202", text_color="white", height=40, width=250, command=bloquear_cronograma)
+    btn_guardar_horarios.pack(anchor="w", padx=30, pady=(30, 25))
+
+
+    # =========================================================================
+    # PESTAÑA 2: CONFIGURACIÓN DE BASE DE DATOS (OCUPA TODA LA PANTALLA)
+    # =========================================================================
+    db_header = ctk.CTkFrame(sub_pag_db, fg_color="transparent")
+    db_header.pack(fill="x", padx=30, pady=(25, 15))
+    ctk.CTkLabel(db_header, text="Conexión de Base de Datos", font=("Akt", 22, "bold"), text_color="white").pack(side="left")
+    
+    # Indicador de estado circular verde
+    status_frame = ctk.CTkFrame(db_header, fg_color="transparent")
+    status_frame.pack(side="right")
+    ctk.CTkLabel(status_frame, text="🟢 Servidor Activo", font=("Akt", 14, "bold"), text_color="#00D46A").pack(side="right")
+
+    # Función auxiliar para campos de texto del formulario (ahora más anchos)
+    def crear_campo_db_ancho(label_text, placeholder, show_char=None):
+        frame = ctk.CTkFrame(sub_pag_db, fg_color="transparent")
+        frame.pack(fill="x", padx=30, pady=8)
+        ctk.CTkLabel(frame, text=label_text, font=("Akt", 15), text_color="#AAAAAA", width=150, anchor="w").pack(side="left")
+        entry = ctk.CTkEntry(frame, placeholder_text=placeholder, show=show_char, height=36, fg_color="#0B0B0B", border_color="#4E0000", text_color="white")
+        entry.pack(side="left", fill="x", expand=True)
+        return entry
+
+    # Inputs del formulario técnico expandidos horizontalmente
+    input_host = crear_campo_db_ancho("Servidor (Host):", "localhost")
+    input_port = crear_campo_db_ancho("Puerto de enlace:", "3306")
+    input_dbname = crear_campo_db_ancho("Nombre Base de Datos:", "concesionaria_db")
+    input_user = crear_campo_db_ancho("Usuario Administrador:", "root")
+    input_pass = crear_campo_db_ancho("Contraseña de Acceso:", "••••••••", show_char="*")
+
+    # Botonera operativa inferior alineada a la izquierda de forma ordenada
+    db_buttons = ctk.CTkFrame(sub_pag_db, fg_color="transparent")
+    db_buttons.pack(fill="x", padx=30, pady=(30, 25))
+
+    btn_probar_db = ctk.CTkButton(db_buttons, text="Probar Conexión", font=("Akt", 14, "bold"), fg_color="transparent", border_color="#4E0000", border_width=1, text_color="white", hover_color="#262626", height=40, width=160)
+    btn_probar_db.pack(side="left", padx=(0, 10))
+
+    btn_inicializar_db = ctk.CTkButton(db_buttons, text="Inicializar Tablas", font=("Akt", 14, "bold"), fg_color="transparent", border_color="#4E0000", border_width=1, text_color="#AAAAAA", hover_color="#262626", height=40, width=160)
+    btn_inicializar_db.pack(side="left", padx=10)
+
+    btn_guardar_db = ctk.CTkButton(db_buttons, text="Guardar Parámetros", font=("Akt", 14, "bold"), fg_color="#E02020", hover_color="#920202", text_color="white", height=40, width=180)
+    btn_guardar_db.pack(side="left", padx=10)
+
+
+
+# --- FILA DE BOTONES DE ACCIONES AVANZADAS (RESPALDAR Y RESTAURAR) ---
+    db_advanced_buttons = ctk.CTkFrame(sub_pag_db, fg_color="transparent")
+    db_advanced_buttons.pack(fill="x", padx=30, pady=(10, 0))
+
+    btn_respaldar_db = ctk.CTkButton(db_advanced_buttons, text="📥 Respaldar Base de Datos", font=("Akt", 14, "bold"), fg_color="transparent", border_color="#4E0000", border_width=1, text_color="white", hover_color="#262626", height=40)
+    btn_respaldar_db.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+    btn_restaurar_db = ctk.CTkButton(db_advanced_buttons, text="📤 Restaurar Base de Datos", font=("Akt", 14, "bold"), fg_color="transparent", border_color="#4E0000", border_width=1, text_color="white", hover_color="#262626", height=40)
+    btn_restaurar_db.pack(side="left", fill="x", expand=True, padx=(10, 0))
+
+    # --- FILA DE SEGURIDAD / ACCIÓN CRÍTICA (ZONA DE PELIGRO) ---
+    danger_zone_frame = ctk.CTkFrame(sub_pag_db, fg_color="transparent")
+    danger_zone_frame.pack(fill="x", padx=30, pady=(20, 0))
+
+    btn_zona_peligro = ctk.CTkButton(danger_zone_frame, text="⚠️ Zona de Peligro (Formatear / Borrar Datos)", font=("Akt", 14, "bold"), fg_color="#360000", border_color="#800000", border_width=1, text_color="#FF9999", hover_color="#570000", height=42)
+    btn_zona_peligro.pack(fill="x", expand=True)
+
+
+    # --- INICIALIZACIÓN POR DEFECTO ---
+    # Forzamos que al abrir configuración por primera vez, muestre Horarios en pantalla completa
+    cambiar_pestana_config(sub_pag_horarios, btn_nav_horarios)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # ---------------- BOTONES ----------------
 
     frame_btn_emp = ctk.CTkFrame(
@@ -1144,7 +1876,7 @@ def abrir_panel():
         "Stock": pag_stock,
         "clientes": pag_clientes,
         "Nuevo Empleado": pag_nuevo_empleado,
-        "Configuracion": pag_configuracion
+        "Configuracion": pag_config
     }
 
     boton_activo = None
@@ -1183,6 +1915,7 @@ def abrir_panel():
     btn_clientes = ctk.CTkButton(sidebar_frame, text="Clientes", height=30, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("clientes", btn_clientes))
     btn_clientes.grid(row=6, column=0, padx=20, pady=3, sticky="ew")
 
+   
     btn_empleados = ctk.CTkButton(sidebar_frame, text="Empleados", height=30, width=100, font=("Akt", 18, "bold"), fg_color="transparent", hover_color="#920202", anchor="w", command=lambda: mostrar_contenido("Empleados", btn_empleados))
     btn_empleados.grid(row=8, column=0, padx=20, pady=3, sticky="ew")
 
@@ -1209,3 +1942,4 @@ def abrir_panel():
 
 if __name__ == "__main__":
     pass
+    
