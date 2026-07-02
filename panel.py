@@ -7,8 +7,48 @@ import matplotlib
 matplotlib.use("TkAgg")  # <-- Obliga a matplotlib a usar el motor de Tkinter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import sqlite3
+import conexion    
 
-    
+
+
+
+
+
+
+
+
+
+
+
+
+def obtener_vehiculos_de_db():
+    try:
+        conexion = sqlite3.connect('zalcas.db')
+        cursor = conexion.cursor()
+        # Seleccionamos las 13 columnas en el orden exacto que espera tu diseño de tarjetas
+        cursor.execute("""
+            SELECT marca, modelo, anio, precio, tipo, color, km, 
+                   motor, transmision, combustible, patente, vin, descripcion 
+            FROM vehiculos
+        """)
+        filas = cursor.fetchall()
+        conexion.close()
+        return filas
+    except Exception as e:
+        print(f"Error al conectar con la base de datos: {e}")
+        return []
+
+
+
+
+
+
+
+
+
+
+
 def abrir_panel():
     ventana = ctk.CTkToplevel()
     ventana.title("Sistema de Gestión - Concesionaria")
@@ -881,6 +921,7 @@ def abrir_panel():
         ctk.CTkLabel(card, text=str(valor), font=("Akt", 28), text_color=color).pack(anchor="w", padx=20)
 
     def actualizar_stock(event=None):
+    # 1. Limpiamos los contenedores visuales antes de redibujar
         for widget in stock_resumen.winfo_children():
             widget.destroy()
 
@@ -889,22 +930,29 @@ def abrir_panel():
 
         filtro = buscador_stock.get().lower()
 
+        # 2. 🌟 CAMBIO CLAVE: Traemos los datos reales de la base de datos en vez del array en memoria
+        vehiculos_db = obtener_vehiculos_de_db()
+
+        # 3. Filtramos según lo que el usuario escriba en el buscador
         vehiculos_filtrados = []
-        for vehiculo in vehiculos_data:
-            marca = vehiculo[0]
-            modelo = vehiculo[1]
+        for vehiculo in vehiculos_db:
+            marca = vehiculo[0]   # marca está en la columna 0
+            modelo = vehiculo[1]  # modelo está en la columna 1
             if filtro in marca.lower() or filtro in modelo.lower():
                 vehiculos_filtrados.append(vehiculo)
 
-        crear_resumen_stock("Total Vehículos", len(vehiculos_data), "white")
-        crear_resumen_stock("Disponibles", len(vehiculos_data), "#00D46A")
+        # 4. Actualizamos los numeritos del resumen con el conteo de la DB
+        crear_resumen_stock("Total Vehículos", len(vehiculos_db), "white")
+        crear_resumen_stock("Disponibles", len(vehiculos_db), "#00D46A") # Modificalo dinámico cuando uses la columna 'estado'
         crear_resumen_stock("Reservados", 0, "#FFB000")
         crear_resumen_stock("Vendidos", 0, "#FF4D5E")
 
         for i in range(3):
             vehiculos_grid.grid_columnconfigure(i, weight=1)
 
+    # 5. Dibujamos las tarjetas en la grilla con los datos desempaquetados
         for index, vehiculo in enumerate(vehiculos_filtrados):
+            # Desempaquetamos los 13 campos que vienen de la tupla de la DB
             marca, modelo, anio, precio, tipo, color, km, motor, transmision, combustible, dominio, vin, descripcion = vehiculo
 
             card = ctk.CTkFrame(
@@ -916,70 +964,84 @@ def abrir_panel():
             )
             card.grid(row=index // 3, column=index % 3, padx=12, pady=12, sticky="nsew")
 
-            header = ctk.CTkFrame(card, fg_color="transparent")
-            header.pack(fill="x", padx=16, pady=(15, 5))
+            # ... (Todo el resto de tu código que arma la tarjeta con labels y botones queda exactamente igual)
 
-            ctk.CTkLabel(
-                header,
-                text=f"{marca} {modelo}",
-                font=("Akt", 18, "bold"),
-                text_color="white"
-            ).pack(side="left")
+            for index, vehiculo in enumerate(vehiculos_filtrados):
+                marca, modelo, anio, precio, tipo, color, km, motor, transmision, combustible, dominio, vin, descripcion = vehiculo
 
-            ctk.CTkLabel(
-                header,
-                text="Disponible",
-                font=("Akt", 12),
-                text_color="#00D46A",
-                fg_color="#133B24",
-                corner_radius=6,
-                padx=10,
-                pady=4
-            ).pack(side="right")
+                card = ctk.CTkFrame(
+                    vehiculos_grid,
+                    fg_color="#242424",
+                    border_color="#4E0000",
+                    border_width=1,
+                    corner_radius=10
+                )
+                card.grid(row=index // 3, column=index % 3, padx=12, pady=12, sticky="nsew")
 
-            ctk.CTkLabel(card, text=f"Año {anio}", font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w", padx=16)
+                header = ctk.CTkFrame(card, fg_color="transparent")
+                header.pack(fill="x", padx=16, pady=(15, 5))
 
-            datos = [
-                ("Tipo:", tipo),
-                ("Color:", color),
-                ("Kilometraje:", f"{km} km"),
-                ("Precio:", f"${precio}")
-            ]
-
-            for etiqueta, valor in datos:
-                fila = ctk.CTkFrame(card, fg_color="transparent")
-                fila.pack(fill="x", padx=16, pady=3)
-
-                ctk.CTkLabel(fila, text=etiqueta, font=("Akt", 14), text_color="#AAAAAA").pack(side="left")
                 ctk.CTkLabel(
-                    fila,
-                    text=valor,
-                    font=("Akt", 14),
-                    text_color="#E02020" if etiqueta == "Precio:" else "white"
+                    header,
+                    text=f"{marca} {modelo}",
+                    font=("Akt", 18, "bold"),
+                    text_color="white"
+                ).pack(side="left")
+
+                ctk.CTkLabel(
+                    header,
+                    text="Disponible",
+                    font=("Akt", 12),
+                    text_color="#00D46A",
+                    fg_color="#133B24",
+                    corner_radius=6,
+                    padx=10,
+                    pady=4
                 ).pack(side="right")
 
-            botones = ctk.CTkFrame(card, fg_color="transparent")
-            botones.pack(fill="x", padx=16, pady=(12, 16))
+                ctk.CTkLabel(card, text=f"Año {anio}", font=("Akt", 14), text_color="#AAAAAA").pack(anchor="w", padx=16)
 
-            ctk.CTkButton(
-                botones,
-                text="Ver",
-                height=36,
-                fg_color="#E02020",
-                hover_color="#B00000",
-                font=("Akt", 14, "bold")
-            ).pack(side="left", fill="x", expand=True, padx=(0, 8))
+                datos = [
+                    ("Tipo:", tipo),
+                    ("Color:", color),
+                    ("Kilometraje:", f"{km} km"),
+                    ("Precio:", f"${precio}")
+                ]
 
-            ctk.CTkButton(
-                botones,
-                text="Eliminar",
-                width=90,
-                height=36,
-                fg_color="#4A1E1E",
-                hover_color="#7A2525",
-                font=("Akt", 13, "bold"),
-                command=lambda v=vehiculo: eliminar_vehiculo_stock(v)
-            ).pack(side="right")
+                for etiqueta, valor in datos:
+                    fila = ctk.CTkFrame(card, fg_color="transparent")
+                    fila.pack(fill="x", padx=16, pady=3)
+
+                    ctk.CTkLabel(fila, text=etiqueta, font=("Akt", 14), text_color="#AAAAAA").pack(side="left")
+                    ctk.CTkLabel(
+                        fila,
+                        text=valor,
+                        font=("Akt", 14),
+                        text_color="#E02020" if etiqueta == "Precio:" else "white"
+                    ).pack(side="right")
+
+                botones = ctk.CTkFrame(card, fg_color="transparent")
+                botones.pack(fill="x", padx=16, pady=(12, 16))
+
+                ctk.CTkButton(
+                    botones,
+                    text="Ver",
+                    height=36,
+                    fg_color="#E02020",
+                    hover_color="#B00000",
+                    font=("Akt", 14, "bold")
+                ).pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+                ctk.CTkButton(
+                    botones,
+                    text="Eliminar",
+                    width=90,
+                    height=36,
+                    fg_color="#4A1E1E",
+                    hover_color="#7A2525",
+                    font=("Akt", 13, "bold"),
+                    command=lambda v=vehiculo: eliminar_vehiculo_stock(v)
+                ).pack(side="right")
 
     def eliminar_vehiculo_stock(vehiculo):
         if messagebox.askyesno("Eliminar vehículo", "¿Querés eliminar este vehículo del stock?"):
@@ -1009,29 +1071,29 @@ def abrir_panel():
 
     # ================= NUEVO VEHICULO =================
     vehiculos_data = []
-    vehiculos_data = [
-    (
-        "Toyota", "Corolla", "2024", "28500",
-        "Sedan", "Blanco", "0", "2.0L",
-        "Automatica", "Nafta",
-        "AB123CD", "JTDBR32E530123456",
-        "Unidad nueva, lista para entrega inmediata."
-    ),
-    (
-        "Honda", "CR-V", "2024", "35200",
-        "SUV", "Negro", "0", "1.5L Turbo",
-        "Automatica", "Nafta",
-        "AC456EF", "2HKRW2H85RH654321",
-        "SUV familiar con excelente equipamiento."
-    ),
-    (
-        "Ford", "Ranger", "2023", "42000",
-        "Pickup", "Gris", "15000", "3.2L Diesel",
-        "Automatica", "Diesel",
-        "AD789GH", "8AFAR23L4PJ987654",
-        "Camioneta usada en muy buen estado."
-    )
-    ]
+    # vehiculos_data = [
+    # (
+    #     "Toyota", "Corolla", "2024", "28500",
+    #     "Sedan", "Blanco", "0", "2.0L",
+    #     "Automatica", "Nafta",
+    #     "AB123CD", "JTDBR32E530123456",
+    #     "Unidad nueva, lista para entrega inmediata."
+    # ),
+    # (
+    #     "Honda", "CR-V", "2024", "35200",
+    #     "SUV", "Negro", "0", "1.5L Turbo",
+    #     "Automatica", "Nafta",
+    #     "AC456EF", "2HKRW2H85RH654321",
+    #     "SUV familiar con excelente equipamiento."
+    # ),
+    # (
+    #     "Ford", "Ranger", "2023", "42000",
+    #     "Pickup", "Gris", "15000", "3.2L Diesel",
+    #     "Automatica", "Diesel",
+    #     "AD789GH", "8AFAR23L4PJ987654",
+    #     "Camioneta usada en muy buen estado."
+    # )
+    # ]
     
 
     pag_nuevo_vehiculo = ctk.CTkScrollableFrame(main_content, fg_color="#1E1E1E")
@@ -1181,11 +1243,30 @@ def abrir_panel():
             messagebox.showerror("Error", "Completa todos los campos requeridos")
             return
 
-        vehiculos_data.append(datos)
-        actualizar_stock()
-        limpiar_campos_vehiculo()
-        messagebox.showinfo("Vehiculo Registrado", "El vehiculo fue registrado correctamente")
-        mostrar_contenido("Stock", btn_stock)
+
+        #------ AQUÍ SE REEMPLAZA POR EL NUEVO BLOQUE DE LA BASE DE DATOS ------
+        try:
+            conexion = sqlite3.connect('zalcas.db')
+            cursor = conexion.cursor()
+            cursor.execute('''
+                INSERT INTO vehiculos (marca, modelo, anio, precio, tipo, color, km, motor, transmision, combustible, patente, vin, descripcion)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',datos)
+            conexion.commit()
+            conexion.close()
+            
+            # Como ves, estas líneas que borraste arriba ahora viven acá adentro:
+            actualizar_stock() 
+            limpiar_campos_vehiculo()
+            messagebox.showinfo("Vehículo Registrado", "El vehículo fue guardado en la base de datos con éxito.")
+            mostrar_contenido("Stock", btn_stock)
+            
+        except sqlite3.IntegrityError:
+            messagebox.showerror("Error", "Ya existe un vehículo registrado con esa Patente o número VIN.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un error inesperado: {e}")
+
+
 
     frame_btn_vehiculo = ctk.CTkFrame(frame_form_vehiculo, fg_color="transparent")
     frame_btn_vehiculo.grid(row=17, column=0, columnspan=2, padx=25, pady=(5, 30), sticky="ew")
@@ -1222,8 +1303,7 @@ def abrir_panel():
 
 
 
-
-    # ================= EMPLEADOS =================
+     # ================= EMPLEADOS =================
     empleados_data = [
         ("Carlos", "Zalcas", "12345678", "1978-04-12", "Casado", "+54 11 1234-5678", "carlos@zalcas.com", "Buenos Aires", "Av. Siempre Viva 123", "Gerente General", "Administración", "2020-01-15", "$120.000", "Tiempo Completo", "carlos@zalcas.com", "+54 11 8765-4321"),
         ("Ana", "Martínez", "23456789", "1990-09-01", "Soltera", "+54 11 2345-6789", "ana@zalcas.com", "La Plata", "Calle Falsa 456", "Vendedor Senior", "Ventas", "2021-03-10", "$65.000", "Medio Tiempo", "ana@zalcas.com", "+54 11 9876-5432"),

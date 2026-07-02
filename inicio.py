@@ -3,8 +3,23 @@ from PIL import Image
 import panel
 import panelempleado
 from tkinter import messagebox  # Importamos el módulo para mostrar alertas o mensajes
+import sqlite3
+    
 # Configuración
 ctk.set_appearance_mode("dark")
+
+
+
+import sqlite3
+
+def crear_base_de_datos():
+    # 1. Conectar a la base de datos
+    # Si el archivo 'concesionaria.db' no existe, Python lo creará automáticamente.
+    conexion = sqlite3.connect('zalcas.db')
+    
+    # 2. Crear un cursor para ejecutar las sentencias SQL
+    cursor = conexion.cursor()
+
 
 # Ventana
 app = ctk.CTk()
